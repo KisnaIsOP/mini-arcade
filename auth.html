@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Mini Arcade</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        .auth-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        .auth-card {
+            backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 overflow-hidden">
+    <!-- Animated Background Elements -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute w-2 h-2 bg-white rounded-full opacity-30 auth-float" style="top: 20%; left: 10%; animation-delay: 0s;"></div>
+        <div class="absolute w-1 h-1 bg-white rounded-full opacity-40 auth-float" style="top: 40%; left: 80%; animation-delay: 2s;"></div>
+        <div class="absolute w-3 h-3 bg-white rounded-full opacity-20 auth-float" style="top: 60%; left: 30%; animation-delay: 4s;"></div>
+        <div class="absolute w-1 h-1 bg-white rounded-full opacity-50 auth-float" style="top: 80%; left: 70%; animation-delay: 1s;"></div>
+        <div class="absolute w-2 h-2 bg-white rounded-full opacity-30 auth-float" style="top: 30%; left: 60%; animation-delay: 3s;"></div>
+    </div>
+
+    <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-md">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 mb-4">
+                    🎮 Mini Arcade
+                </h1>
+                <p class="text-xl text-gray-300">Join the multiplayer action!</p>
+            </div>
+
+            <!-- Auth Card -->
+            <div class="auth-card rounded-3xl p-8 shadow-2xl">
+                <!-- Tab Switcher -->
+                <div class="flex rounded-2xl bg-black/20 p-1 mb-6">
+                    <button id="loginTab" class="flex-1 py-3 px-4 rounded-xl text-white font-semibold transition-all duration-300 bg-gradient-to-r from-purple-500 to-indigo-500 shadow-lg">
+                        Login
+                    </button>
+                    <button id="registerTab" class="flex-1 py-3 px-4 rounded-xl text-gray-400 font-semibold transition-all duration-300 hover:text-white">
+                        Register
+                    </button>
+                </div>
+
+                <!-- Alert Messages -->
+                <div id="alertContainer" class="hidden mb-6">
+                    <div id="alertMessage" class="p-4 rounded-xl text-white text-center font-medium"></div>
+                </div>
+
+                <!-- Login Form -->
+                <form id="loginForm" class="space-y-6">
+                    <div>
+                        <label for="loginUsername" class="block text-sm font-medium text-gray-300 mb-2">Username</label>
+                        <input type="text" id="loginUsername" name="username" required
+                            class="w-full px-4 py-3 bg-black/20 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                            placeholder="Enter your username">
+                    </div>
+                    <div>
+                        <label for="loginPassword" class="block text-sm font-medium text-gray-300 mb-2">Password</label>
+                        <input type="password" id="loginPassword" name="password" required
+                            class="w-full px-4 py-3 bg-black/20 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                            placeholder="Enter your password">
+                    </div>
+                    <button type="submit"
+                        class="w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <span id="loginButtonText">Sign In</span>
+                        <div id="loginSpinner" class="hidden inline-block w-5 h-5 border-2 border-white border-r-transparent rounded-full animate-spin ml-2"></div>
+                    </button>
+                </form>
+
+                <!-- Register Form -->
+                <form id="registerForm" class="space-y-6 hidden">
+                    <div>
+                        <label for="registerUsername" class="block text-sm font-medium text-gray-300 mb-2">Username</label>
+                        <input type="text" id="registerUsername" name="username" required minlength="3" maxlength="20"
+                            class="w-full px-4 py-3 bg-black/20 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-300"
+                            placeholder="Choose a username (3-20 chars)">
+                    </div>
+                    <div>
+                        <label for="registerPassword" class="block text-sm font-medium text-gray-300 mb-2">Password</label>
+                        <input type="password" id="registerPassword" name="password" required minlength="6"
+                            class="w-full px-4 py-3 bg-black/20 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-300"
+                            placeholder="Create a password (6+ chars)">
+                    </div>
+                    <div>
+                        <label for="confirmPassword" class="block text-sm font-medium text-gray-300 mb-2">Confirm Password</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required
+                            class="w-full px-4 py-3 bg-black/20 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-300"
+                            placeholder="Confirm your password">
+                    </div>
+                    <button type="submit"
+                        class="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg hover:shadow-pink-500/30 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-pink-500">
+                        <span id="registerButtonText">Create Account</span>
+                        <div id="registerSpinner" class="hidden inline-block w-5 h-5 border-2 border-white border-r-transparent rounded-full animate-spin ml-2"></div>
+                    </button>
+                </form>
+
+                <!-- Back to Home -->
+                <div class="mt-6 text-center">
+                    <a href="index.html" class="text-gray-400 hover:text-white transition-colors duration-300 text-sm">
+                        ← Back to Singleplayer
+                    </a>
+                </div>
+
+                <!-- Security Note -->
+                <div class="mt-8 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl">
+                    <div class="text-yellow-400 text-sm text-center">
+                        <strong>Demo Auth System</strong><br>
+                        This uses client-side hashing for demonstration. For production apps, use proper authentication services like Supabase Auth.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        class AuthUI {
+            constructor() {
+                this.loginTab = document.getElementById('loginTab');
+                this.registerTab = document.getElementById('registerTab');
+                this.loginForm = document.getElementById('loginForm');
+                this.registerForm = document.getElementById('registerForm');
+                this.alertContainer = document.getElementById('alertContainer');
+                this.alertMessage = document.getElementById('alertMessage');
+                
+                this.initTabs();
+                this.initForms();
+                this.checkExistingAuth();
+            }
+
+            initTabs() {
+                this.loginTab.addEventListener('click', () => this.switchTab('login'));
+                this.registerTab.addEventListener('click', () => this.switchTab('register'));
+            }
+
+            switchTab(tab) {
+                if (tab === 'login') {
+                    this.loginTab.className = 'flex-1 py-3 px-4 rounded-xl text-white font-semibold transition-all duration-300 bg-gradient-to-r from-purple-500 to-indigo-500 shadow-lg';
+                    this.registerTab.className = 'flex-1 py-3 px-4 rounded-xl text-gray-400 font-semibold transition-all duration-300 hover:text-white';
+                    this.loginForm.classList.remove('hidden');
+                    this.registerForm.classList.add('hidden');
+                } else {
+                    this.registerTab.className = 'flex-1 py-3 px-4 rounded-xl text-white font-semibold transition-all duration-300 bg-gradient-to-r from-pink-500 to-purple-500 shadow-lg';
+                    this.loginTab.className = 'flex-1 py-3 px-4 rounded-xl text-gray-400 font-semibold transition-all duration-300 hover:text-white';
+                    this.registerForm.classList.remove('hidden');
+                    this.loginForm.classList.add('hidden');
+                }
+                this.hideAlert();
+            }
+
+            initForms() {
+                this.loginForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    await this.handleLogin();
+                });
+
+                this.registerForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    await this.handleRegister();
+                });
+            }
+
+            async handleLogin() {
+                const username = document.getElementById('loginUsername').value.trim();
+                const password = document.getElementById('loginPassword').value;
+                
+                if (!username || !password) {
+                    this.showAlert('Please fill in all fields', 'error');
+                    return;
+                }
+
+                this.setLoading('login', true);
+                
+                try {
+                    const result = await login(username, password);
+                    if (result.success) {
+                        this.showAlert('Login successful! Redirecting...', 'success');
+                        setTimeout(() => {
+                            const returnUrl = new URLSearchParams(window.location.search).get('return') || 'index.html';
+                            window.location.href = returnUrl;
+                        }, 1500);
+                    } else {
+                        this.showAlert(result.error, 'error');
+                    }
+                } catch (error) {
+                    this.showAlert('Login failed. Please try again.', 'error');
+                } finally {
+                    this.setLoading('login', false);
+                }
+            }
+
+            async handleRegister() {
+                const username = document.getElementById('registerUsername').value.trim();
+                const password = document.getElementById('registerPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+
+                if (!username || !password || !confirmPassword) {
+                    this.showAlert('Please fill in all fields', 'error');
+                    return;
+                }
+
+                if (password !== confirmPassword) {
+                    this.showAlert('Passwords do not match', 'error');
+                    return;
+                }
+
+                this.setLoading('register', true);
+
+                try {
+                    const result = await register(username, password);
+                    if (result.success) {
+                        this.showAlert('Account created successfully! Please login.', 'success');
+                        setTimeout(() => {
+                            this.switchTab('login');
+                            document.getElementById('loginUsername').value = username;
+                        }, 1500);
+                    } else {
+                        this.showAlert(result.error, 'error');
+                    }
+                } catch (error) {
+                    this.showAlert('Registration failed. Please try again.', 'error');
+                } finally {
+                    this.setLoading('register', false);
+                }
+            }
+
+            setLoading(form, loading) {
+                const button = form === 'login' ? 'loginButtonText' : 'registerButtonText';
+                const spinner = form === 'login' ? 'loginSpinner' : 'registerSpinner';
+                
+                document.getElementById(button).style.display = loading ? 'none' : 'inline';
+                document.getElementById(spinner).classList.toggle('hidden', !loading);
+                
+                if (form === 'login') {
+                    this.loginForm.querySelector('button').disabled = loading;
+                } else {
+                    this.registerForm.querySelector('button').disabled = loading;
+                }
+            }
+
+            showAlert(message, type) {
+                const bgColor = type === 'success' ? 'bg-green-500/20 border-green-500/30 text-green-400' 
+                                                  : 'bg-red-500/20 border-red-500/30 text-red-400';
+                
+                this.alertMessage.textContent = message;
+                this.alertMessage.className = `p-4 rounded-xl text-center font-medium border ${bgColor}`;
+                this.alertContainer.classList.remove('hidden');
+                
+                if (type === 'error') {
+                    setTimeout(() => this.hideAlert(), 5000);
+                }
+            }
+
+            hideAlert() {
+                this.alertContainer.classList.add('hidden');
+            }
+
+            checkExistingAuth() {
+                const currentUser = getCurrentUser();
+                if (currentUser) {
+                    const returnUrl = new URLSearchParams(window.location.search).get('return') || 'index.html';
+                    window.location.href = returnUrl;
+                }
+            }
+        }
+
+        // Initialize Auth UI when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new AuthUI();
+        });
+    </script>
+</body>
+</html>

@@ -53,6 +53,43 @@
             <p class="text-xl md:text-2xl text-gray-300 font-light">
                 Challenge yourself with these exciting mini games!
             </p>
+            
+            <!-- User Status & Mode Selection -->
+            <div class="mt-6 flex flex-col items-center space-y-4">
+                <!-- User Status -->
+                <div id="userStatus" class="hidden bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-6 py-3">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                        <span class="text-white font-medium">Welcome back, <span id="username" class="text-cyan-400"></span>!</span>
+                        <button id="logoutBtn" class="text-gray-400 hover:text-white text-sm underline transition-colors duration-300">
+                            Logout
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Mode Selection -->
+                <div class="bg-black/20 backdrop-blur-sm border border-white/20 rounded-2xl p-2">
+                    <div class="flex space-x-2">
+                        <button id="singleplayerMode" class="mode-btn px-6 py-3 rounded-xl font-semibold transition-all duration-300 bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg">
+                            🎯 Singleplayer
+                        </button>
+                        <button id="multiplayerMode" class="mode-btn px-6 py-3 rounded-xl font-semibold transition-all duration-300 text-gray-400 hover:text-white">
+                            🌐 Multiplayer
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Mode Description -->
+                <div id="modeDescription" class="text-center max-w-md">
+                    <div id="singleplayerDesc" class="text-gray-300">
+                        Play solo and beat your personal records! All scores are saved locally.
+                    </div>
+                    <div id="multiplayerDesc" class="text-gray-300 hidden">
+                        Compete with other players in real-time! Login required for multiplayer modes.
+                    </div>
+                </div>
+            </div>
+
             <div class="mt-6 flex justify-center space-x-4 text-sm text-gray-400">
                 <div class="flex items-center space-x-2">
                     <span class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
@@ -61,6 +98,10 @@
                 <div class="flex items-center space-x-2">
                     <span class="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></span>
                     <span>Mobile Friendly</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span id="multiplayerStatus" class="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"></span>
+                    <span>Multiplayer Ready</span>
                 </div>
             </div>
         </header>
@@ -145,34 +186,152 @@
         </footer>
     </div>
 
+    <script src="auth.js"></script>
     <script>
-        // Load and display best scores
-        function loadBestScores() {
-            const reactionBest = localStorage.getItem('reactionBest');
-            const clickBest = localStorage.getItem('clickBest');
-            const aimBest = localStorage.getItem('aimBest');
-            const memoryBest = localStorage.getItem('memoryBest');
+        class MiniArcadeHome {
+            constructor() {
+                this.currentMode = 'singleplayer';
+                this.gameLinks = {
+                    singleplayer: {
+                        reaction: 'reaction.html',
+                        clickspeed: 'clickspeed.html',
+                        aimtrainer: 'aimtrainer.html',
+                        memory: 'memory.html'
+                    },
+                    multiplayer: {
+                        reaction: 'reaction.html?mode=multiplayer',
+                        clickspeed: 'clickspeed.html?mode=multiplayer',
+                        aimtrainer: 'aimtrainer.html?mode=multiplayer',
+                        memory: 'memory.html?mode=multiplayer'
+                    }
+                };
 
-            document.getElementById('reactionBest').textContent = reactionBest ? `${reactionBest}ms` : 'No record';
-            document.getElementById('clickBest').textContent = clickBest ? `${clickBest} CPS` : 'No record';
-            document.getElementById('aimBest').textContent = aimBest ? `${aimBest} points` : 'No record';
-            document.getElementById('memoryBest').textContent = memoryBest ? `${memoryBest}s` : 'No record';
+                this.initAuth();
+                this.initModeSelection();
+                this.loadBestScores();
+                this.initSparkles();
+            }
+
+            initAuth() {
+                const currentUser = getCurrentUser();
+                const userStatus = document.getElementById('userStatus');
+                const username = document.getElementById('username');
+                const logoutBtn = document.getElementById('logoutBtn');
+
+                if (currentUser) {
+                    userStatus.classList.remove('hidden');
+                    username.textContent = currentUser.username;
+                }
+
+                logoutBtn.addEventListener('click', () => {
+                    logout();
+                    location.reload();
+                });
+            }
+
+            initModeSelection() {
+                const singleplayerBtn = document.getElementById('singleplayerMode');
+                const multiplayerBtn = document.getElementById('multiplayerMode');
+                const singleplayerDesc = document.getElementById('singleplayerDesc');
+                const multiplayerDesc = document.getElementById('multiplayerDesc');
+
+                // Mode switching
+                singleplayerBtn.addEventListener('click', () => {
+                    this.switchMode('singleplayer');
+                });
+
+                multiplayerBtn.addEventListener('click', () => {
+                    this.switchMode('multiplayer');
+                });
+
+                // Update game links when mode changes
+                this.updateGameLinks();
+            }
+
+            switchMode(mode) {
+                this.currentMode = mode;
+                
+                const singleplayerBtn = document.getElementById('singleplayerMode');
+                const multiplayerBtn = document.getElementById('multiplayerMode');
+                const singleplayerDesc = document.getElementById('singleplayerDesc');
+                const multiplayerDesc = document.getElementById('multiplayerDesc');
+
+                if (mode === 'singleplayer') {
+                    singleplayerBtn.className = 'mode-btn px-6 py-3 rounded-xl font-semibold transition-all duration-300 bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg';
+                    multiplayerBtn.className = 'mode-btn px-6 py-3 rounded-xl font-semibold transition-all duration-300 text-gray-400 hover:text-white';
+                    singleplayerDesc.classList.remove('hidden');
+                    multiplayerDesc.classList.add('hidden');
+                } else {
+                    multiplayerBtn.className = 'mode-btn px-6 py-3 rounded-xl font-semibold transition-all duration-300 bg-gradient-to-r from-green-500 to-blue-500 text-white shadow-lg';
+                    singleplayerBtn.className = 'mode-btn px-6 py-3 rounded-xl font-semibold transition-all duration-300 text-gray-400 hover:text-white';
+                    multiplayerDesc.classList.remove('hidden');
+                    singleplayerDesc.classList.add('hidden');
+                }
+
+                this.updateGameLinks();
+            }
+
+            updateGameLinks() {
+                // Update all game card links
+                const gameCards = document.querySelectorAll('a[href$=".html"]');
+                gameCards.forEach(card => {
+                    const originalHref = card.getAttribute('href');
+                    const gameName = originalHref.split('.html')[0];
+                    
+                    if (this.gameLinks[this.currentMode][gameName]) {
+                        card.setAttribute('href', this.gameLinks[this.currentMode][gameName]);
+                    }
+                });
+
+                // Add click handlers for multiplayer auth check
+                if (this.currentMode === 'multiplayer') {
+                    gameCards.forEach(card => {
+                        card.addEventListener('click', this.handleMultiplayerClick.bind(this));
+                    });
+                }
+            }
+
+            handleMultiplayerClick(e) {
+                if (this.currentMode === 'multiplayer' && !isAuthenticated()) {
+                    e.preventDefault();
+                    const targetGame = e.currentTarget.getAttribute('href');
+                    window.location.href = `auth.html?return=${encodeURIComponent(targetGame)}`;
+                }
+            }
+
+            loadBestScores() {
+                setTimeout(() => {
+                    const reactionBest = localStorage.getItem('reactionBest');
+                    const clickBest = localStorage.getItem('clickBest');
+                    const aimBest = localStorage.getItem('aimBest');
+                    const memoryBest = localStorage.getItem('memoryBest');
+
+                    document.getElementById('reactionBest').textContent = reactionBest ? `${reactionBest}ms` : 'No record';
+                    document.getElementById('clickBest').textContent = clickBest ? `${clickBest} CPS` : 'No record';
+                    document.getElementById('aimBest').textContent = aimBest ? `${aimBest} points` : 'No record';
+                    document.getElementById('memoryBest').textContent = memoryBest ? `${memoryBest}s` : 'No record';
+                }, 500);
+            }
+
+            initSparkles() {
+                // Add some interactive sparkles on mouse move
+                document.addEventListener('mousemove', (e) => {
+                    if (Math.random() > 0.97) {
+                        const sparkle = document.createElement('div');
+                        sparkle.className = 'fixed w-1 h-1 bg-white rounded-full pointer-events-none z-50';
+                        sparkle.style.left = e.clientX + 'px';
+                        sparkle.style.top = e.clientY + 'px';
+                        sparkle.style.animation = 'ping 1s cubic-bezier(0, 0, 0.2, 1)';
+                        document.body.appendChild(sparkle);
+                        setTimeout(() => sparkle.remove(), 1000);
+                    }
+                });
+            }
         }
 
-        // Simulate loading delay for smooth UX
-        setTimeout(loadBestScores, 500);
-
-        // Add some interactive sparkles on mouse move
-        document.addEventListener('mousemove', (e) => {
-            if (Math.random() > 0.97) {
-                const sparkle = document.createElement('div');
-                sparkle.className = 'fixed w-1 h-1 bg-white rounded-full pointer-events-none z-50';
-                sparkle.style.left = e.clientX + 'px';
-                sparkle.style.top = e.clientY + 'px';
-                sparkle.style.animation = 'ping 1s cubic-bezier(0, 0, 0.2, 1)';
-                document.body.appendChild(sparkle);
-                setTimeout(() => sparkle.remove(), 1000);
-            }
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new MiniArcadeHome();
         });
     </script>
 </body>

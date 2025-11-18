@@ -30,11 +30,30 @@
                     <span>←</span>
                     <span>Home</span>
                 </a>
-                <div class="text-right">
-                    <div class="text-sm text-gray-300">Best Time</div>
-                    <div class="text-2xl font-bold text-yellow-400" id="bestTime">---</div>
+                <div class="flex items-center space-x-4">
+                    <!-- Mode Indicator -->
+                    <div id="modeIndicator" class="text-center">
+                        <div class="text-sm text-gray-300">Mode</div>
+                        <div class="text-lg font-bold text-purple-400" id="gameMode">Singleplayer</div>
+                    </div>
+                    <!-- Best Time -->
+                    <div class="text-center">
+                        <div class="text-sm text-gray-300">Best Time</div>
+                        <div class="text-2xl font-bold text-yellow-400" id="bestTime">---</div>
+                    </div>
                 </div>
             </div>
+
+            <!-- Multiplayer Player List -->
+            <div id="multiplayerInfo" class="hidden mb-6">
+                <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4 max-w-md mx-auto">
+                    <div class="text-sm text-gray-300 mb-2">🌐 Online Players</div>
+                    <div id="playerList" class="space-y-1">
+                        <div class="text-gray-400 text-sm">Loading players...</div>
+                    </div>
+                </div>
+            </div>
+
             <h1 class="text-4xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400 mb-4">
                 ⚡ Reaction Test
             </h1>
@@ -107,6 +126,8 @@
         </div>
     </div>
 
+    <script src="auth.js"></script>
+    <script src="supabase.js"></script>
     <script>
         class ReactionGame {
             constructor() {
@@ -126,9 +147,73 @@
                 this.startTime = 0;
                 this.timeout = null;
                 this.gameState = 'ready'; // ready, waiting, green, finished, too-early
+                this.isMultiplayer = false;
+                this.multiplayer = null;
                 
+                this.initMode();
                 this.loadLeaderboard();
                 this.bindEvents();
+            }
+
+            initMode() {
+                // Check if in multiplayer mode
+                const urlParams = new URLSearchParams(window.location.search);
+                this.isMultiplayer = urlParams.get('mode') === 'multiplayer';
+                
+                const gameModeEl = document.getElementById('gameMode');
+                const multiplayerInfo = document.getElementById('multiplayerInfo');
+                
+                if (this.isMultiplayer) {
+                    // Check authentication for multiplayer
+                    if (!isAuthenticated()) {
+                        window.location.href = 'auth.html?return=' + encodeURIComponent(window.location.href);
+                        return;
+                    }
+                    
+                    gameModeEl.textContent = 'Multiplayer';
+                    gameModeEl.className = 'text-lg font-bold text-green-400';
+                    multiplayerInfo.classList.remove('hidden');
+                    
+                    // Initialize multiplayer
+                    this.initMultiplayer();
+                } else {
+                    gameModeEl.textContent = 'Singleplayer';
+                    gameModeEl.className = 'text-lg font-bold text-purple-400';
+                }
+            }
+
+            initMultiplayer() {
+                try {
+                    this.multiplayer = initMultiplayer();
+                    
+                    // Listen for score updates from other players
+                    this.multiplayer.onMessage('score_update', (data) => {
+                        if (data.game === 'reaction') {
+                            this.handleMultiplayerScore(data);
+                        }
+                    });
+                    
+                    console.log('🌐 Multiplayer initialized for Reaction Test');
+                } catch (error) {
+                    console.error('Failed to initialize multiplayer:', error);
+                }
+            }
+
+            handleMultiplayerScore(data) {
+                // Show a brief notification when another player completes the game
+                const notification = document.createElement('div');
+                notification.className = 'fixed top-4 right-4 bg-blue-500/90 backdrop-blur-sm border border-blue-300/30 text-white p-4 rounded-xl shadow-lg z-50 animate-pulse';
+                notification.innerHTML = `
+                    <div class="text-sm font-bold">🏆 ${data.user} scored!</div>
+                    <div class="text-xs">${data.score}ms reaction time</div>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                // Remove after 3 seconds
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
             }
 
             bindEvents() {
@@ -306,6 +391,14 @@
                 
                 // Update recent scores display
                 this.updateRecentScoresList(recentScores);
+                
+                // Broadcast score in multiplayer mode
+                if (this.isMultiplayer && this.multiplayer) {
+                    this.multiplayer.broadcastScore('reaction', time, {
+                        isNewRecord: isNewRecord,
+                        totalGames: recentScores.length
+                    });
+                }
                 
                 return isNewRecord;
             }

@@ -37,12 +37,18 @@ Match pairs in a 4x4 grid using your memory skills!
 
 - 🎨 **Beautiful UI**: Modern gradient backgrounds and smooth animations
 - 📱 **Mobile Responsive**: Optimized for all screen sizes
-- 🏆 **Score Tracking**: Local storage saves your best scores
+- 🏆 **Score Tracking**: Local storage saves your best scores with leaderboards
 - 🎵 **Interactive**: Hover effects, click animations, and feedback
 - ⚡ **Fast Loading**: Pure vanilla JavaScript, no frameworks needed
 - 🌟 **Accessibility**: Keyboard and touch-friendly
+- 🔐 **Authentication System**: Secure login/register with client-side hashing
+- 🌐 **Multiplayer Support**: Real-time multiplayer with Supabase integration
+- 👥 **Player Presence**: See who's online and compete in real-time
+- 📊 **Advanced Leaderboards**: Track best scores and recent performance
 
 ## 🚀 Quick Start
+
+### Basic Setup (Singleplayer)
 
 1. Clone the repository:
    ```bash
@@ -67,16 +73,101 @@ Match pairs in a 4x4 grid using your memory skills!
 
 4. Start playing! 🎮
 
+### Multiplayer Setup (Optional)
+
+For real-time multiplayer features:
+
+1. **Create a Supabase project** (free at [supabase.com](https://supabase.com))
+2. **Get your credentials** from the API settings
+3. **Update `supabase.js`**:
+   ```javascript
+   this.SUPABASE_URL = 'https://your-project.supabase.co';
+   this.SUPABASE_ANON_KEY = 'your-anon-key-here';
+   this.isDemo = false; // Enable real multiplayer
+   ```
+4. **Enable Realtime** in your Supabase dashboard
+
+**Note**: Multiplayer works in demo mode by default with simulated players!
+
 ## 📁 Project Structure
 
 ```
 mini-arcade/
-├── index.html        # Home page with game selection
+├── index.html        # Home page with game selection and mode switching
+├── auth.html         # Login/register page
+├── auth.js          # Authentication system
+├── supabase.js      # Multiplayer integration
 ├── reaction.html     # Reaction test game
 ├── clickspeed.html   # Click speed challenge
 ├── aimtrainer.html   # Aim training game
 ├── memory.html       # Memory flip game
+├── server.js         # Express server for deployment
+├── package.json      # Node.js dependencies
 └── README.md         # This file
+```
+
+## 🧪 Testing Guide
+
+### Authentication Flow Testing
+
+1. **Test Registration**:
+   - Go to multiplayer mode (triggers auth if not logged in)
+   - Click "Register" tab
+   - Try weak passwords (should show validation errors)
+   - Try existing usernames (should show error)
+   - Create a valid account
+
+2. **Test Login**:
+   - Use wrong credentials (should show error)
+   - Use correct credentials (should redirect to game)
+   - Check if username appears in header when logged in
+
+3. **Test Session Management**:
+   - Reload page (should stay logged in)
+   - Logout and verify redirection to singleplayer mode
+
+### Singleplayer vs Multiplayer Testing
+
+1. **Singleplayer Mode** (Default):
+   - No login required
+   - Scores saved locally
+   - All games work offline
+
+2. **Multiplayer Mode**:
+   - Requires login (redirects to auth.html)
+   - Shows online players list
+   - Broadcasts scores to other players
+   - Receives real-time notifications
+
+### Game Features Testing
+
+1. **Leaderboards**:
+   - Play games multiple times
+   - Verify "NEW RECORD!" animation
+   - Check recent scores list (max 5)
+   - Test on mobile devices
+
+2. **Multiplayer Notifications**:
+   - Open game in multiple browser windows
+   - Login with different accounts
+   - Complete games and see notifications appear
+
+### Browser Console Testing
+
+Use these commands in browser console for debugging:
+
+```javascript
+// Check auth status
+authDebug.getUserStats()
+
+// Clear all auth data
+authDebug.clearAllUsers()
+
+// Check multiplayer connection
+getMultiplayer()?.getActivePlayers()
+
+// Simulate multiplayer score
+getMultiplayer()?.broadcastScore('reaction', 250)
 ```
 
 ## 🎮 How to Play
