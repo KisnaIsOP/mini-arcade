@@ -45,10 +45,11 @@ const getEnvVar = (name, fallback = '') => {
     return fallback;
 };
 
-// Production configuration
-const SUPABASE_URL = getEnvVar('SUPABASE_URL', '');
-const SUPABASE_KEY = getEnvVar('SUPABASE_KEY', '');
-const IS_DEMO = getEnvVar('IS_DEMO', 'true') === 'true';
+// PRODUCTION CONFIGURATION - Using actual Supabase credentials for testing
+// TODO: Move these to environment variables for production deployment
+const SUPABASE_URL = getEnvVar('SUPABASE_URL', 'https://wmrcrrfhyaqmyftxksty.supabase.co');
+const SUPABASE_KEY = getEnvVar('SUPABASE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndtcmNycmZoeWFxbXlmdHhrc3R5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0ODk1NzksImV4cCI6MjA3OTA2NTU3OX0.yKjmGSIMTZSQVh8LDT1kDGOIuJEmmOI7nqxSgLJcIXM');
+const IS_DEMO = getEnvVar('IS_DEMO', 'false') === 'true'; // Default to production mode
 
 // Export for use by other modules
 window.IS_DEMO = IS_DEMO;

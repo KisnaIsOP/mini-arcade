@@ -35,8 +35,9 @@ const getEnvVar = (name, fallback = '') => {
 class ScoresDatabase {
     constructor() {
         this.supabase = null;
-        this.SUPABASE_URL = getEnvVar('SUPABASE_URL', '');
-        this.SUPABASE_ANON_KEY = getEnvVar('SUPABASE_KEY', '');
+        // Use same credentials as supabase.js for consistency
+        this.SUPABASE_URL = getEnvVar('SUPABASE_URL', 'https://wmrcrrfhyaqmyftxksty.supabase.co');
+        this.SUPABASE_ANON_KEY = getEnvVar('SUPABASE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndtcmNycmZoeWFxbXlmdHhrc3R5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0ODk1NzksImV4cCI6MjA3OTA2NTU3OX0.yKjmGSIMTZSQVh8LDT1kDGOIuJEmmOI7nqxSgLJcIXM');
         
         this.initSupabase();
         
