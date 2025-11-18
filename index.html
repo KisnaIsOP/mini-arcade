@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Arcade - Fun Games Collection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        @keyframes glow {
+            from { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+            to { box-shadow: 0 0 40px rgba(59, 130, 246, 0.8), 0 0 60px rgba(59, 130, 246, 0.6); }
+        }
+        .game-card {
+            transition: all 0.3s ease;
+        }
+        .game-card:hover {
+            transform: translateY(-10px) scale(1.02);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <!-- Stars Background -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute w-1 h-1 bg-white rounded-full animate-pulse" style="top: 20%; left: 10%;"></div>
+        <div class="absolute w-1 h-1 bg-white rounded-full animate-pulse" style="top: 40%; left: 80%; animation-delay: 1s;"></div>
+        <div class="absolute w-1 h-1 bg-white rounded-full animate-pulse" style="top: 60%; left: 30%; animation-delay: 2s;"></div>
+        <div class="absolute w-1 h-1 bg-white rounded-full animate-pulse" style="top: 80%; left: 70%; animation-delay: 0.5s;"></div>
+        <div class="absolute w-1 h-1 bg-white rounded-full animate-pulse" style="top: 30%; left: 60%; animation-delay: 1.5s;"></div>
+    </div>
+
+    <div class="relative z-10 container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="text-center mb-12">
+            <h1 class="text-6xl md:text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 animate-glow mb-4">
+                🎮 MINI ARCADE
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-300 font-light">
+                Challenge yourself with these exciting mini games!
+            </p>
+            <div class="mt-6 flex justify-center space-x-4 text-sm text-gray-400">
+                <div class="flex items-center space-x-2">
+                    <span class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
+                    <span>High Scores Saved</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></span>
+                    <span>Mobile Friendly</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Game Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
+            <!-- Reaction Button Game -->
+            <div class="game-card bg-gradient-to-br from-red-500/20 to-orange-500/20 backdrop-blur-sm border border-red-300/30 rounded-3xl p-6 text-center hover:border-red-300/60">
+                <div class="text-6xl mb-4 animate-float">⚡</div>
+                <h3 class="text-2xl font-bold text-white mb-3">Reaction Test</h3>
+                <p class="text-gray-300 mb-6 text-sm">How fast are your reflexes? Click when the color changes!</p>
+                <div class="mb-4">
+                    <div class="text-xs text-gray-400 mb-1">Best Time</div>
+                    <div class="text-lg font-bold text-red-400" id="reactionBest">
+                        <span class="loading-dots">Loading...</span>
+                    </div>
+                </div>
+                <a href="reaction.html" class="inline-block w-full bg-gradient-to-r from-red-500 to-orange-500 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg hover:shadow-red-500/30 transition-all duration-300 transform hover:scale-105">
+                    Play Now
+                </a>
+            </div>
+
+            <!-- Click Speed Test -->
+            <div class="game-card bg-gradient-to-br from-green-500/20 to-teal-500/20 backdrop-blur-sm border border-green-300/30 rounded-3xl p-6 text-center hover:border-green-300/60">
+                <div class="text-6xl mb-4 animate-float" style="animation-delay: 0.5s;">👆</div>
+                <h3 class="text-2xl font-bold text-white mb-3">Click Speed</h3>
+                <p class="text-gray-300 mb-6 text-sm">How many clicks in 5 seconds? Test your clicking speed!</p>
+                <div class="mb-4">
+                    <div class="text-xs text-gray-400 mb-1">Best CPS</div>
+                    <div class="text-lg font-bold text-green-400" id="clickBest">
+                        <span class="loading-dots">Loading...</span>
+                    </div>
+                </div>
+                <a href="clickspeed.html" class="inline-block w-full bg-gradient-to-r from-green-500 to-teal-500 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg hover:shadow-green-500/30 transition-all duration-300 transform hover:scale-105">
+                    Play Now
+                </a>
+            </div>
+
+            <!-- Aim Trainer -->
+            <div class="game-card bg-gradient-to-br from-blue-500/20 to-purple-500/20 backdrop-blur-sm border border-blue-300/30 rounded-3xl p-6 text-center hover:border-blue-300/60">
+                <div class="text-6xl mb-4 animate-float" style="animation-delay: 1s;">🎯</div>
+                <h3 class="text-2xl font-bold text-white mb-3">Aim Trainer</h3>
+                <p class="text-gray-300 mb-6 text-sm">Hit as many targets as possible in 10 seconds!</p>
+                <div class="mb-4">
+                    <div class="text-xs text-gray-400 mb-1">Best Score</div>
+                    <div class="text-lg font-bold text-blue-400" id="aimBest">
+                        <span class="loading-dots">Loading...</span>
+                    </div>
+                </div>
+                <a href="aimtrainer.html" class="inline-block w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-300 transform hover:scale-105">
+                    Play Now
+                </a>
+            </div>
+
+            <!-- Memory Flip Game -->
+            <div class="game-card bg-gradient-to-br from-pink-500/20 to-violet-500/20 backdrop-blur-sm border border-pink-300/30 rounded-3xl p-6 text-center hover:border-pink-300/60">
+                <div class="text-6xl mb-4 animate-float" style="animation-delay: 1.5s;">🧠</div>
+                <h3 class="text-2xl font-bold text-white mb-3">Memory Flip</h3>
+                <p class="text-gray-300 mb-6 text-sm">Match all pairs in a 4x4 grid. Remember the positions!</p>
+                <div class="mb-4">
+                    <div class="text-xs text-gray-400 mb-1">Best Time</div>
+                    <div class="text-lg font-bold text-pink-400" id="memoryBest">
+                        <span class="loading-dots">Loading...</span>
+                    </div>
+                </div>
+                <a href="memory.html" class="inline-block w-full bg-gradient-to-r from-pink-500 to-violet-500 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg hover:shadow-pink-500/30 transition-all duration-300 transform hover:scale-105">
+                    Play Now
+                </a>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="text-center mt-16 text-gray-400">
+            <p class="text-sm">
+                Built with ❤️ using HTML, TailwindCSS & JavaScript
+            </p>
+            <div class="mt-4 flex justify-center space-x-6 text-xs">
+                <span>• Responsive Design</span>
+                <span>• Local High Scores</span>
+                <span>• Smooth Animations</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Load and display best scores
+        function loadBestScores() {
+            const reactionBest = localStorage.getItem('reactionBest');
+            const clickBest = localStorage.getItem('clickBest');
+            const aimBest = localStorage.getItem('aimBest');
+            const memoryBest = localStorage.getItem('memoryBest');
+
+            document.getElementById('reactionBest').textContent = reactionBest ? `${reactionBest}ms` : 'No record';
+            document.getElementById('clickBest').textContent = clickBest ? `${clickBest} CPS` : 'No record';
+            document.getElementById('aimBest').textContent = aimBest ? `${aimBest} points` : 'No record';
+            document.getElementById('memoryBest').textContent = memoryBest ? `${memoryBest}s` : 'No record';
+        }
+
+        // Simulate loading delay for smooth UX
+        setTimeout(loadBestScores, 500);
+
+        // Add some interactive sparkles on mouse move
+        document.addEventListener('mousemove', (e) => {
+            if (Math.random() > 0.97) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'fixed w-1 h-1 bg-white rounded-full pointer-events-none z-50';
+                sparkle.style.left = e.clientX + 'px';
+                sparkle.style.top = e.clientY + 'px';
+                sparkle.style.animation = 'ping 1s cubic-bezier(0, 0, 0.2, 1)';
+                document.body.appendChild(sparkle);
+                setTimeout(() => sparkle.remove(), 1000);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Click Speed Test - Mini Arcade</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes bounce-click {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(0.95); }
+        }
+        .click-animation {
+            animation: bounce-click 0.1s ease;
+        }
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        }
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-green-900 via-teal-900 to-cyan-900">
+    <div class="container mx-auto px-4 py-8 min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <div class="flex items-center justify-between mb-6">
+                <a href="index.html" class="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-6 py-3 rounded-xl hover:bg-white/20 transition-all duration-300 flex items-center space-x-2">
+                    <span>←</span>
+                    <span>Home</span>
+                </a>
+                <div class="text-right">
+                    <div class="text-sm text-gray-300">Best CPS</div>
+                    <div class="text-2xl font-bold text-cyan-400" id="bestCPS">---</div>
+                </div>
+            </div>
+            <h1 class="text-4xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-400 mb-4">
+                👆 Click Speed Test
+            </h1>
+            <p class="text-lg text-gray-300">How many clicks can you do in 5 seconds?</p>
+        </header>
+
+        <!-- Game Area -->
+        <div class="flex-1 flex flex-col items-center justify-center">
+            <!-- Timer and Stats -->
+            <div class="grid grid-cols-3 gap-8 mb-8 text-center">
+                <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4">
+                    <div class="text-3xl font-bold text-white" id="timeLeft">5</div>
+                    <div class="text-sm text-gray-300">Seconds</div>
+                </div>
+                <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4">
+                    <div class="text-3xl font-bold text-green-400" id="clickCount">0</div>
+                    <div class="text-sm text-gray-300">Clicks</div>
+                </div>
+                <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4">
+                    <div class="text-3xl font-bold text-cyan-400" id="currentCPS">0.0</div>
+                    <div class="text-sm text-gray-300">CPS</div>
+                </div>
+            </div>
+
+            <!-- Click Button -->
+            <div class="relative mb-8">
+                <button id="clickButton" class="relative overflow-hidden w-80 h-80 md:w-96 md:h-96 rounded-full bg-gradient-to-br from-green-500 to-teal-500 text-white font-bold text-3xl border-8 border-green-400 hover:border-green-300 focus:outline-none focus:ring-8 focus:ring-green-300/50 transition-all duration-200 select-none">
+                    <span id="buttonText">CLICK ME!</span>
+                </button>
+            </div>
+
+            <!-- Game Status -->
+            <div class="text-center mb-8">
+                <div class="text-2xl font-bold text-white mb-2" id="gameStatus">Ready to start?</div>
+                <div class="text-lg text-gray-300" id="gameInstruction">Click the button to begin the 5-second challenge!</div>
+            </div>
+
+            <!-- Results -->
+            <div id="results" class="text-center hidden">
+                <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 mb-6 max-w-md">
+                    <div class="text-4xl font-bold text-green-400 mb-2" id="finalScore">0 clicks</div>
+                    <div class="text-2xl font-bold text-cyan-400 mb-4" id="finalCPS">0.0 CPS</div>
+                    <div class="text-lg text-gray-300" id="resultMessage">Great job!</div>
+                </div>
+                <button id="playAgainBtn" class="bg-gradient-to-r from-green-500 to-cyan-500 text-white font-bold py-3 px-8 rounded-xl hover:shadow-lg hover:shadow-green-500/30 transition-all duration-300 transform hover:scale-105">
+                    Play Again
+                </button>
+            </div>
+
+            <!-- Instructions -->
+            <div class="text-center mt-8 max-w-md">
+                <div class="bg-black/20 backdrop-blur-sm border border-white/10 rounded-xl p-4">
+                    <h3 class="text-lg font-bold text-white mb-2">Tips for High CPS:</h3>
+                    <ul class="text-sm text-gray-300 text-left space-y-1">
+                        <li>• Use multiple fingers (butterfly clicking)</li>
+                        <li>• Click with steady rhythm</li>
+                        <li>• Stay relaxed and focused</li>
+                        <li>• Practice makes perfect!</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class ClickSpeedGame {
+            constructor() {
+                this.clickButton = document.getElementById('clickButton');
+                this.buttonText = document.getElementById('buttonText');
+                this.timeLeft = document.getElementById('timeLeft');
+                this.clickCount = document.getElementById('clickCount');
+                this.currentCPS = document.getElementById('currentCPS');
+                this.gameStatus = document.getElementById('gameStatus');
+                this.gameInstruction = document.getElementById('gameInstruction');
+                this.results = document.getElementById('results');
+                this.finalScore = document.getElementById('finalScore');
+                this.finalCPS = document.getElementById('finalCPS');
+                this.resultMessage = document.getElementById('resultMessage');
+                this.playAgainBtn = document.getElementById('playAgainBtn');
+                this.bestCPSEl = document.getElementById('bestCPS');
+                
+                this.gameState = 'ready'; // ready, playing, finished
+                this.clicks = 0;
+                this.timeRemaining = 5;
+                this.gameTimer = null;
+                this.startTime = 0;
+                
+                this.loadBestCPS();
+                this.bindEvents();
+            }
+
+            bindEvents() {
+                this.clickButton.addEventListener('click', (e) => this.handleClick(e));
+                this.playAgainBtn.addEventListener('click', () => this.resetGame());
+                
+                // Prevent right-click menu and other interactions
+                this.clickButton.addEventListener('contextmenu', (e) => e.preventDefault());
+                this.clickButton.addEventListener('selectstart', (e) => e.preventDefault());
+            }
+
+            handleClick(e) {
+                if (this.gameState === 'ready') {
+                    this.startGame();
+                } else if (this.gameState === 'playing') {
+                    this.registerClick(e);
+                }
+            }
+
+            startGame() {
+                this.gameState = 'playing';
+                this.clicks = 0;
+                this.timeRemaining = 5;
+                this.startTime = Date.now();
+                
+                this.buttonText.textContent = 'CLICK FAST!';
+                this.gameStatus.textContent = 'GO! CLICK AS FAST AS YOU CAN!';
+                this.gameInstruction.textContent = 'Every click counts!';
+                
+                this.updateDisplay();
+                this.startTimer();
+            }
+
+            registerClick(e) {
+                this.clicks++;
+                
+                // Add click animation
+                this.clickButton.classList.add('click-animation');
+                setTimeout(() => {
+                    this.clickButton.classList.remove('click-animation');
+                }, 100);
+                
+                // Create ripple effect
+                this.createRipple(e);
+                
+                // Update display
+                this.updateDisplay();
+            }
+
+            createRipple(e) {
+                const ripple = document.createElement('span');
+                const rect = this.clickButton.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                
+                ripple.classList.add('ripple');
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                
+                this.clickButton.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            }
+
+            startTimer() {
+                this.gameTimer = setInterval(() => {
+                    this.timeRemaining -= 0.1;
+                    
+                    if (this.timeRemaining <= 0) {
+                        this.endGame();
+                    } else {
+                        this.updateDisplay();
+                    }
+                }, 100);
+            }
+
+            updateDisplay() {
+                const timeDisplay = Math.max(0, this.timeRemaining).toFixed(1);
+                this.timeLeft.textContent = timeDisplay;
+                this.clickCount.textContent = this.clicks;
+                
+                const elapsed = (Date.now() - this.startTime) / 1000;
+                const cps = elapsed > 0 ? (this.clicks / elapsed).toFixed(1) : '0.0';
+                this.currentCPS.textContent = cps;
+            }
+
+            endGame() {
+                this.gameState = 'finished';
+                clearInterval(this.gameTimer);
+                
+                const finalCPS = (this.clicks / 5).toFixed(1);
+                
+                this.buttonText.textContent = 'FINISHED!';
+                this.clickButton.className = 'relative overflow-hidden w-80 h-80 md:w-96 md:h-96 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-white font-bold text-3xl border-8 border-blue-400 cursor-default select-none';
+                
+                this.showResults(finalCPS);
+                this.updateBestCPS(parseFloat(finalCPS));
+            }
+
+            showResults(cps) {
+                this.results.classList.remove('hidden');
+                this.finalScore.textContent = `${this.clicks} clicks`;
+                this.finalCPS.textContent = `${cps} CPS`;
+                
+                let message = '';
+                const cpsNum = parseFloat(cps);
+                
+                if (cpsNum >= 15) {
+                    message = '🔥 INSANE! Are you using a macro?!';
+                } else if (cpsNum >= 12) {
+                    message = '⚡ AMAZING! Lightning fast!';
+                } else if (cpsNum >= 10) {
+                    message = '🚀 EXCELLENT! Great speed!';
+                } else if (cpsNum >= 8) {
+                    message = '👍 GOOD! Nice clicking speed!';
+                } else if (cpsNum >= 6) {
+                    message = '😊 NOT BAD! Keep practicing!';
+                } else if (cpsNum >= 4) {
+                    message = '🙂 DECENT! Room for improvement!';
+                } else {
+                    message = '😅 SLOW! Try using more fingers!';
+                }
+                
+                this.resultMessage.textContent = message;
+                this.gameStatus.textContent = 'Game Complete!';
+                this.gameInstruction.textContent = `You averaged ${cps} clicks per second!`;
+            }
+
+            resetGame() {
+                this.gameState = 'ready';
+                this.clicks = 0;
+                this.timeRemaining = 5;
+                clearInterval(this.gameTimer);
+                
+                this.buttonText.textContent = 'CLICK ME!';
+                this.clickButton.className = 'relative overflow-hidden w-80 h-80 md:w-96 md:h-96 rounded-full bg-gradient-to-br from-green-500 to-teal-500 text-white font-bold text-3xl border-8 border-green-400 hover:border-green-300 focus:outline-none focus:ring-8 focus:ring-green-300/50 transition-all duration-200 select-none';
+                
+                this.timeLeft.textContent = '5';
+                this.clickCount.textContent = '0';
+                this.currentCPS.textContent = '0.0';
+                this.gameStatus.textContent = 'Ready to start?';
+                this.gameInstruction.textContent = 'Click the button to begin the 5-second challenge!';
+                
+                this.results.classList.add('hidden');
+            }
+
+            loadBestCPS() {
+                const best = localStorage.getItem('clickBest');
+                this.bestCPSEl.textContent = best ? `${best} CPS` : '---';
+            }
+
+            updateBestCPS(cps) {
+                const currentBest = localStorage.getItem('clickBest');
+                if (!currentBest || cps > parseFloat(currentBest)) {
+                    localStorage.setItem('clickBest', cps.toString());
+                    this.bestCPSEl.textContent = `${cps} CPS`;
+                    this.bestCPSEl.className = 'text-2xl font-bold text-green-400 animate-pulse';
+                    setTimeout(() => {
+                        this.bestCPSEl.className = 'text-2xl font-bold text-cyan-400';
+                    }, 2000);
+                }
+            }
+        }
+
+        // Initialize game when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new ClickSpeedGame();
+        });
+    </script>
+</body>
+</html>

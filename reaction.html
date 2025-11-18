@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reaction Test - Mini Arcade</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.5); }
+            50% { box-shadow: 0 0 40px rgba(239, 68, 68, 0.8); }
+        }
+        .pulse-glow {
+            animation: pulse-glow 2s infinite;
+        }
+        .reaction-button {
+            transition: all 0.3s ease;
+        }
+        .reaction-button:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-red-900 via-orange-900 to-yellow-900">
+    <div class="container mx-auto px-4 py-8 min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <div class="flex items-center justify-between mb-6">
+                <a href="index.html" class="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-6 py-3 rounded-xl hover:bg-white/20 transition-all duration-300 flex items-center space-x-2">
+                    <span>←</span>
+                    <span>Home</span>
+                </a>
+                <div class="text-right">
+                    <div class="text-sm text-gray-300">Best Time</div>
+                    <div class="text-2xl font-bold text-yellow-400" id="bestTime">---</div>
+                </div>
+            </div>
+            <h1 class="text-4xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400 mb-4">
+                ⚡ Reaction Test
+            </h1>
+            <p class="text-lg text-gray-300">Click as fast as you can when the color changes!</p>
+        </header>
+
+        <!-- Game Area -->
+        <div class="flex-1 flex flex-col items-center justify-center">
+            <!-- Game Status -->
+            <div class="text-center mb-8">
+                <div class="text-6xl mb-4" id="gameEmoji">⚡</div>
+                <div class="text-2xl font-bold text-white mb-2" id="gameStatus">Click "Start" to begin</div>
+                <div class="text-lg text-gray-300" id="gameInstruction">Wait for the color to change, then click!</div>
+            </div>
+
+            <!-- Reaction Button -->
+            <div class="mb-8">
+                <button id="reactionButton" class="reaction-button w-64 h-64 md:w-80 md:h-80 rounded-full bg-gradient-to-br from-red-500 to-red-600 text-white font-bold text-2xl border-4 border-red-400 hover:border-red-300 focus:outline-none focus:ring-4 focus:ring-red-300/50 disabled:opacity-50 disabled:cursor-not-allowed">
+                    START
+                </button>
+            </div>
+
+            <!-- Results -->
+            <div id="results" class="text-center hidden">
+                <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 mb-6">
+                    <div class="text-3xl font-bold text-yellow-400 mb-2" id="resultTime">0ms</div>
+                    <div class="text-lg text-gray-300" id="resultMessage">Great job!</div>
+                </div>
+                <button id="playAgainBtn" class="bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold py-3 px-8 rounded-xl hover:shadow-lg hover:shadow-yellow-500/30 transition-all duration-300 transform hover:scale-105">
+                    Play Again
+                </button>
+            </div>
+
+            <!-- Instructions -->
+            <div class="text-center mt-8 max-w-md">
+                <div class="bg-black/20 backdrop-blur-sm border border-white/10 rounded-xl p-4">
+                    <h3 class="text-lg font-bold text-white mb-2">How to Play:</h3>
+                    <ol class="text-sm text-gray-300 text-left space-y-1">
+                        <li>1. Click "START" to begin</li>
+                        <li>2. Wait for the button to turn GREEN</li>
+                        <li>3. Click as fast as you can!</li>
+                        <li>4. Try to beat your best time</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class ReactionGame {
+            constructor() {
+                this.button = document.getElementById('reactionButton');
+                this.status = document.getElementById('gameStatus');
+                this.instruction = document.getElementById('gameInstruction');
+                this.emoji = document.getElementById('gameEmoji');
+                this.results = document.getElementById('results');
+                this.resultTime = document.getElementById('resultTime');
+                this.resultMessage = document.getElementById('resultMessage');
+                this.playAgainBtn = document.getElementById('playAgainBtn');
+                this.bestTimeEl = document.getElementById('bestTime');
+                
+                this.startTime = 0;
+                this.timeout = null;
+                this.gameState = 'ready'; // ready, waiting, green, finished, too-early
+                
+                this.loadBestTime();
+                this.bindEvents();
+            }
+
+            bindEvents() {
+                this.button.addEventListener('click', () => this.handleClick());
+                this.playAgainBtn.addEventListener('click', () => this.resetGame());
+            }
+
+            handleClick() {
+                switch(this.gameState) {
+                    case 'ready':
+                        this.startGame();
+                        break;
+                    case 'waiting':
+                        this.tooEarly();
+                        break;
+                    case 'green':
+                        this.recordTime();
+                        break;
+                    case 'finished':
+                    case 'too-early':
+                        this.resetGame();
+                        break;
+                }
+            }
+
+            startGame() {
+                this.gameState = 'waiting';
+                this.button.textContent = 'WAIT...';
+                this.button.className = 'reaction-button w-64 h-64 md:w-80 md:h-80 rounded-full bg-gradient-to-br from-red-500 to-red-600 text-white font-bold text-2xl border-4 border-red-400 pulse-glow cursor-pointer';
+                
+                this.status.textContent = 'Wait for GREEN...';
+                this.instruction.textContent = "Don't click yet!";
+                this.emoji.textContent = '⏳';
+
+                // Random delay between 2-6 seconds
+                const delay = Math.random() * 4000 + 2000;
+                
+                this.timeout = setTimeout(() => {
+                    this.showGreen();
+                }, delay);
+            }
+
+            showGreen() {
+                this.gameState = 'green';
+                this.startTime = Date.now();
+                
+                this.button.textContent = 'CLICK NOW!';
+                this.button.className = 'reaction-button w-64 h-64 md:w-80 md:h-80 rounded-full bg-gradient-to-br from-green-500 to-green-600 text-white font-bold text-2xl border-4 border-green-400 cursor-pointer transform scale-110';
+                
+                this.status.textContent = 'GO! CLICK NOW!';
+                this.instruction.textContent = 'Click as fast as you can!';
+                this.emoji.textContent = '🚀';
+            }
+
+            recordTime() {
+                const reactionTime = Date.now() - this.startTime;
+                this.gameState = 'finished';
+                
+                this.button.className = 'reaction-button w-64 h-64 md:w-80 md:h-80 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold text-2xl border-4 border-blue-400 cursor-pointer';
+                this.button.textContent = 'DONE!';
+                
+                this.showResults(reactionTime);
+                this.updateBestTime(reactionTime);
+            }
+
+            tooEarly() {
+                this.gameState = 'too-early';
+                clearTimeout(this.timeout);
+                
+                this.button.textContent = 'TOO EARLY!';
+                this.button.className = 'reaction-button w-64 h-64 md:w-80 md:h-80 rounded-full bg-gradient-to-br from-gray-500 to-gray-600 text-white font-bold text-xl border-4 border-gray-400 cursor-pointer';
+                
+                this.status.textContent = 'Too Early!';
+                this.instruction.textContent = 'You clicked before it turned green!';
+                this.emoji.textContent = '❌';
+                
+                this.results.classList.remove('hidden');
+                this.resultTime.textContent = 'TOO EARLY';
+                this.resultTime.className = 'text-3xl font-bold text-red-400 mb-2';
+                this.resultMessage.textContent = 'Wait for the green color!';
+            }
+
+            showResults(time) {
+                this.results.classList.remove('hidden');
+                this.resultTime.textContent = `${time}ms`;
+                this.resultTime.className = 'text-3xl font-bold text-green-400 mb-2';
+                
+                let message = '';
+                if (time < 200) {
+                    message = '🔥 Lightning fast! Are you even human?';
+                } else if (time < 250) {
+                    message = '⚡ Incredible reflexes!';
+                } else if (time < 300) {
+                    message = '🎯 Excellent reaction time!';
+                } else if (time < 400) {
+                    message = '👍 Good job!';
+                } else if (time < 500) {
+                    message = '😊 Not bad, keep practicing!';
+                } else {
+                    message = '🐌 Room for improvement!';
+                }
+                
+                this.resultMessage.textContent = message;
+                this.emoji.textContent = '🎉';
+                this.status.textContent = 'Result:';
+                this.instruction.textContent = 'Click "Play Again" to try once more!';
+            }
+
+            resetGame() {
+                this.gameState = 'ready';
+                clearTimeout(this.timeout);
+                
+                this.button.textContent = 'START';
+                this.button.className = 'reaction-button w-64 h-64 md:w-80 md:h-80 rounded-full bg-gradient-to-br from-red-500 to-red-600 text-white font-bold text-2xl border-4 border-red-400 hover:border-red-300 cursor-pointer';
+                
+                this.status.textContent = 'Click "Start" to begin';
+                this.instruction.textContent = 'Wait for the color to change, then click!';
+                this.emoji.textContent = '⚡';
+                
+                this.results.classList.add('hidden');
+            }
+
+            loadBestTime() {
+                const best = localStorage.getItem('reactionBest');
+                this.bestTimeEl.textContent = best ? `${best}ms` : '---';
+            }
+
+            updateBestTime(time) {
+                const currentBest = localStorage.getItem('reactionBest');
+                if (!currentBest || time < parseInt(currentBest)) {
+                    localStorage.setItem('reactionBest', time.toString());
+                    this.bestTimeEl.textContent = `${time}ms`;
+                    this.bestTimeEl.className = 'text-2xl font-bold text-green-400 animate-pulse';
+                    setTimeout(() => {
+                        this.bestTimeEl.className = 'text-2xl font-bold text-yellow-400';
+                    }, 2000);
+                }
+            }
+        }
+
+        // Initialize game when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new ReactionGame();
+        });
+    </script>
+</body>
+</html>

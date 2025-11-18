@@ -1,0 +1,25 @@
+{
+  "name": "mini-arcade",
+  "version": "1.0.0",
+  "description": "Fun collection of 4 browser-based mini games",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "games",
+    "arcade",
+    "html5",
+    "javascript",
+    "web-games"
+  ],
+  "author": "Developer",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
