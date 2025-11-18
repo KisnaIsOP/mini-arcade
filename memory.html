@@ -112,12 +112,37 @@
 
                 <!-- Game Over Screen -->
                 <div id="gameOverScreen" class="absolute inset-0 bg-black/50 backdrop-blur-sm rounded-2xl flex items-center justify-center z-20 hidden">
-                    <div class="text-center bg-black/50 backdrop-blur-sm border border-white/20 rounded-2xl p-8">
+                    <div class="text-center bg-black/50 backdrop-blur-sm border border-white/20 rounded-2xl p-8 max-w-lg mx-auto">
                         <div class="text-4xl mb-4">🏆</div>
                         <div class="text-3xl font-bold text-white mb-2">Congratulations!</div>
                         <div class="text-xl font-bold text-pink-400 mb-2" id="finalTime">Time: 0:00</div>
                         <div class="text-lg text-gray-300 mb-4" id="finalMoves">0 moves</div>
                         <div class="text-lg text-gray-300 mb-6" id="resultMessage">Perfect memory!</div>
+                        
+                        <!-- New Record Animation -->
+                        <div id="newRecordAlert" class="hidden mb-4 p-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl animate-pulse">
+                            <div class="text-xl font-bold text-white">🏆 NEW RECORD! 🏆</div>
+                        </div>
+
+                        <!-- Leaderboard -->
+                        <div class="mb-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- Best Score Card -->
+                                <div class="bg-gradient-to-br from-pink-500/20 to-violet-500/20 backdrop-blur-sm border border-pink-300/30 rounded-xl p-4">
+                                    <div class="text-sm text-pink-300 mb-1">🏆 Best Time</div>
+                                    <div class="text-xl font-bold text-pink-400" id="leaderboardBest">---</div>
+                                </div>
+                                
+                                <!-- Recent Scores -->
+                                <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4">
+                                    <div class="text-sm text-gray-300 mb-2">📈 Recent Times</div>
+                                    <div id="recentScoresList" class="space-y-1 text-sm max-h-20 overflow-y-auto">
+                                        <div class="text-gray-400">No times yet</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <button id="playAgainBtn" class="bg-gradient-to-r from-violet-500 to-pink-500 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg hover:shadow-violet-500/30 transition-all duration-300 transform hover:scale-105">
                             Play Again
                         </button>
@@ -170,6 +195,9 @@
                 this.finalTime = document.getElementById('finalTime');
                 this.finalMoves = document.getElementById('finalMoves');
                 this.resultMessage = document.getElementById('resultMessage');
+                this.newRecordAlert = document.getElementById('newRecordAlert');
+                this.leaderboardBest = document.getElementById('leaderboardBest');
+                this.recentScoresList = document.getElementById('recentScoresList');
                 
                 this.gameState = 'ready'; // ready, playing, finished
                 this.cards = [];
@@ -183,7 +211,7 @@
                 // Emoji pairs for the cards
                 this.emojis = ['🎯', '🚀', '⭐', '🎨', '🎵', '🏆', '💎', '🔥'];
                 
-                this.loadBestTime();
+                this.loadLeaderboard();
                 this.bindEvents();
                 this.setupGrid();
             }
@@ -362,7 +390,7 @@
                 
                 const totalTime = Math.floor((Date.now() - this.startTime) / 1000);
                 this.showResults(totalTime);
-                this.updateBestTime(totalTime);
+                this.saveScore(totalTime);
             }
 
             showResults(totalTime) {
@@ -407,30 +435,87 @@
                 this.setupGrid();
             }
 
-            loadBestTime() {
+            loadLeaderboard() {
                 const best = localStorage.getItem('memoryBest');
+                const recentScores = JSON.parse(localStorage.getItem('memoryRecent') || '[]');
+                
                 if (best) {
                     const seconds = parseInt(best);
                     const minutes = Math.floor(seconds / 60);
                     const remainingSeconds = seconds % 60;
-                    this.bestTimeEl.textContent = `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+                    const timeString = `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+                    this.bestTimeEl.textContent = timeString;
+                    this.leaderboardBest.textContent = timeString;
                 } else {
                     this.bestTimeEl.textContent = '---';
+                    this.leaderboardBest.textContent = '---';
                 }
+                
+                this.updateRecentScoresList(recentScores);
             }
 
-            updateBestTime(totalTime) {
+            updateRecentScoresList(scores) {
+                if (scores.length === 0) {
+                    this.recentScoresList.innerHTML = '<div class="text-gray-400">No times yet</div>';
+                    return;
+                }
+                
+                this.recentScoresList.innerHTML = scores.map((time, index) => {
+                    const minutes = Math.floor(time / 60);
+                    const seconds = time % 60;
+                    const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                    return `<div class="flex justify-between items-center text-gray-300">
+                        <span>#${index + 1}</span>
+                        <span class="font-mono">${timeString}</span>
+                    </div>`;
+                }).join('');
+            }
+
+            saveScore(totalTime) {
+                // Get current scores
                 const currentBest = localStorage.getItem('memoryBest');
-                if (!currentBest || totalTime < parseInt(currentBest)) {
+                const recentScores = JSON.parse(localStorage.getItem('memoryRecent') || '[]');
+                
+                // Check for new best (lower time is better)
+                const isNewRecord = !currentBest || totalTime < parseInt(currentBest);
+                
+                if (isNewRecord) {
                     localStorage.setItem('memoryBest', totalTime.toString());
                     const minutes = Math.floor(totalTime / 60);
                     const seconds = totalTime % 60;
-                    this.bestTimeEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                    const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                    
+                    this.bestTimeEl.textContent = timeString;
+                    this.leaderboardBest.textContent = timeString;
+                    
+                    // Show new record animation
+                    this.showNewRecord();
+                    
+                    // Update header best score with animation
                     this.bestTimeEl.className = 'text-2xl font-bold text-green-400 animate-pulse';
                     setTimeout(() => {
                         this.bestTimeEl.className = 'text-2xl font-bold text-pink-400';
                     }, 2000);
                 }
+                
+                // Add to recent scores (keep only last 5)
+                recentScores.unshift(totalTime);
+                if (recentScores.length > 5) {
+                    recentScores.pop();
+                }
+                localStorage.setItem('memoryRecent', JSON.stringify(recentScores));
+                
+                // Update recent scores display
+                this.updateRecentScoresList(recentScores);
+                
+                return isNewRecord;
+            }
+
+            showNewRecord() {
+                this.newRecordAlert.classList.remove('hidden');
+                setTimeout(() => {
+                    this.newRecordAlert.classList.add('hidden');
+                }, 3000);
             }
         }
 

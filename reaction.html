@@ -62,7 +62,31 @@
                 <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 mb-6">
                     <div class="text-3xl font-bold text-yellow-400 mb-2" id="resultTime">0ms</div>
                     <div class="text-lg text-gray-300" id="resultMessage">Great job!</div>
+                    <!-- New Record Animation -->
+                    <div id="newRecordAlert" class="hidden mt-4 p-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl animate-pulse">
+                        <div class="text-xl font-bold text-white">🏆 NEW RECORD! 🏆</div>
+                    </div>
                 </div>
+                
+                <!-- Leaderboard -->
+                <div class="mb-6 max-w-md mx-auto">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Best Score Card -->
+                        <div class="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 backdrop-blur-sm border border-yellow-300/30 rounded-xl p-4">
+                            <div class="text-sm text-yellow-300 mb-1">🏆 Best Time</div>
+                            <div class="text-2xl font-bold text-yellow-400" id="leaderboardBest">---</div>
+                        </div>
+                        
+                        <!-- Recent Scores -->
+                        <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4">
+                            <div class="text-sm text-gray-300 mb-2">📈 Recent Scores</div>
+                            <div id="recentScoresList" class="space-y-1 text-sm">
+                                <div class="text-gray-400">No scores yet</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <button id="playAgainBtn" class="bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold py-3 px-8 rounded-xl hover:shadow-lg hover:shadow-yellow-500/30 transition-all duration-300 transform hover:scale-105">
                     Play Again
                 </button>
@@ -95,12 +119,15 @@
                 this.resultMessage = document.getElementById('resultMessage');
                 this.playAgainBtn = document.getElementById('playAgainBtn');
                 this.bestTimeEl = document.getElementById('bestTime');
+                this.newRecordAlert = document.getElementById('newRecordAlert');
+                this.leaderboardBest = document.getElementById('leaderboardBest');
+                this.recentScoresList = document.getElementById('recentScoresList');
                 
                 this.startTime = 0;
                 this.timeout = null;
                 this.gameState = 'ready'; // ready, waiting, green, finished, too-early
                 
-                this.loadBestTime();
+                this.loadLeaderboard();
                 this.bindEvents();
             }
 
@@ -164,7 +191,7 @@
                 this.button.textContent = 'DONE!';
                 
                 this.showResults(reactionTime);
-                this.updateBestTime(reactionTime);
+                this.saveScore(reactionTime);
             }
 
             tooEarly() {
@@ -224,21 +251,70 @@
                 this.results.classList.add('hidden');
             }
 
-            loadBestTime() {
+            loadLeaderboard() {
                 const best = localStorage.getItem('reactionBest');
+                const recentScores = JSON.parse(localStorage.getItem('reactionRecent') || '[]');
+                
                 this.bestTimeEl.textContent = best ? `${best}ms` : '---';
+                this.leaderboardBest.textContent = best ? `${best}ms` : '---';
+                this.updateRecentScoresList(recentScores);
             }
 
-            updateBestTime(time) {
+            updateRecentScoresList(scores) {
+                if (scores.length === 0) {
+                    this.recentScoresList.innerHTML = '<div class="text-gray-400">No scores yet</div>';
+                    return;
+                }
+                
+                this.recentScoresList.innerHTML = scores.map((score, index) => 
+                    `<div class="flex justify-between items-center text-gray-300">
+                        <span>#${index + 1}</span>
+                        <span class="font-mono">${score}ms</span>
+                    </div>`
+                ).join('');
+            }
+
+            saveScore(time) {
+                // Get current scores
                 const currentBest = localStorage.getItem('reactionBest');
-                if (!currentBest || time < parseInt(currentBest)) {
+                const recentScores = JSON.parse(localStorage.getItem('reactionRecent') || '[]');
+                
+                // Check for new best
+                const isNewRecord = !currentBest || time < parseInt(currentBest);
+                
+                if (isNewRecord) {
                     localStorage.setItem('reactionBest', time.toString());
                     this.bestTimeEl.textContent = `${time}ms`;
+                    this.leaderboardBest.textContent = `${time}ms`;
+                    
+                    // Show new record animation
+                    this.showNewRecord();
+                    
+                    // Update header best score with animation
                     this.bestTimeEl.className = 'text-2xl font-bold text-green-400 animate-pulse';
                     setTimeout(() => {
                         this.bestTimeEl.className = 'text-2xl font-bold text-yellow-400';
                     }, 2000);
                 }
+                
+                // Add to recent scores (keep only last 5)
+                recentScores.unshift(time);
+                if (recentScores.length > 5) {
+                    recentScores.pop();
+                }
+                localStorage.setItem('reactionRecent', JSON.stringify(recentScores));
+                
+                // Update recent scores display
+                this.updateRecentScoresList(recentScores);
+                
+                return isNewRecord;
+            }
+
+            showNewRecord() {
+                this.newRecordAlert.classList.remove('hidden');
+                setTimeout(() => {
+                    this.newRecordAlert.classList.add('hidden');
+                }, 3000);
             }
         }
 
