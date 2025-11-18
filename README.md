@@ -48,11 +48,11 @@ Match pairs in a 4x4 grid using your memory skills!
 
 ## 🚀 Quick Start
 
-### Basic Setup (Singleplayer)
+### Local Development (Demo Mode)
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/mini-arcade.git
+   git clone https://github.com/KisnaIsOP/mini-arcade.git
    ```
 
 2. Navigate to the project folder:
@@ -71,23 +71,59 @@ Match pairs in a 4x4 grid using your memory skills!
    # Or simply double-click index.html
    ```
 
-4. Start playing! 🎮
+4. Start playing! 🎮 (Runs in demo mode with simulated multiplayer)
 
-### Multiplayer Setup (Optional)
+### Production Setup (Real Multiplayer)
 
-For real-time multiplayer features:
+#### Step 1: Supabase Database Setup
 
-1. **Create a Supabase project** (free at [supabase.com](https://supabase.com))
-2. **Get your credentials** from the API settings
-3. **Update `supabase.js`**:
-   ```javascript
-   this.SUPABASE_URL = 'https://your-project.supabase.co';
-   this.SUPABASE_ANON_KEY = 'your-anon-key-here';
-   this.isDemo = false; // Enable real multiplayer
+1. **Create a Supabase project** at [supabase.com](https://supabase.com) (free)
+2. **Run the SQL migration**:
+   - Go to Supabase Dashboard → SQL Editor
+   - Copy and paste contents of `supabase_schema.sql`
+   - Click "RUN" to create tables and functions
+
+3. **Get your credentials** from Project Settings → API:
+   - Project URL: `https://your-project-id.supabase.co`
+   - Anon public key: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
+
+#### Step 2: Environment Configuration
+
+Create `.env` file (or set environment variables):
+```bash
+SUPABASE_URL=https://your-project-id.supabase.co
+SUPABASE_KEY=your-anon-key-here
+IS_DEMO=false
+USE_SUPABASE_AUTH=false
+```
+
+#### Step 3: Deployment Options
+
+**Option A: Render.com (Recommended)**
+1. Fork/push repository to GitHub
+2. Create new Web Service on Render
+3. Connect your GitHub repository
+4. Set environment variables in Render dashboard:
    ```
-4. **Enable Realtime** in your Supabase dashboard
+   SUPABASE_URL = https://wmrcrrfhyaqmyftxksty.supabase.co
+   SUPABASE_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndtcmNycmZoeWFxbXlmdHhrc3R5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0ODk1NzksImV4cCI6MjA3OTA2NTU3OX0.yKjmGSIMTZSQVh8LDT1kDGOIuJEmmOI7nqxSgLJcIXM
+   IS_DEMO = false
+   USE_SUPABASE_AUTH = false
+   ```
+5. Deploy and test!
 
-**Note**: Multiplayer works in demo mode by default with simulated players!
+**Option B: Local Production Testing**
+```bash
+# Set environment variables
+export SUPABASE_URL="https://wmrcrrfhyaqmyftxksty.supabase.co"
+export SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndtcmNycmZoeWFxbXlmdHhrc3R5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0ODk1NzksImV4cCI6MjA3OTA2NTU3OX0.yKjmGSIMTZSQVh8LDT1kDGOIuJEmmOI7nqxSgLJcIXM"
+export IS_DEMO="false"
+
+# Start local server
+npm start
+# or
+python -m http.server 8000
+```
 
 ## 📁 Project Structure
 
@@ -312,6 +348,151 @@ To switch from demo mode to real Supabase multiplayer:
 ```
 
 This comprehensive testing ensures all authentication and multiplayer features work correctly before deployment!
+
+## 🚀 Production Deployment Guide
+
+### Render.com Deployment Steps
+
+1. **Prepare Repository**:
+   ```bash
+   git add .
+   git commit -m "Configure for production deployment"
+   git push origin main
+   ```
+
+2. **Create Render Web Service**:
+   - Go to [render.com](https://render.com) and sign up/login
+   - Click "New +" → "Web Service"  
+   - Connect your GitHub repository: `mini-arcade`
+   - Configure service:
+     - **Name**: `mini-arcade`
+     - **Region**: Choose closest to your location
+     - **Branch**: `main`
+     - **Runtime**: `Node`
+     - **Build Command**: `npm install`
+     - **Start Command**: `npm start`
+
+3. **Set Environment Variables** in Render dashboard:
+   ```
+   SUPABASE_URL = https://wmrcrrfhyaqmyftxksty.supabase.co
+   SUPABASE_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndtcmNycmZoeWFxbXlmdHhrc3R5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0ODk1NzksImV4cCI6MjA3OTA2NTU3OX0.yKjmGSIMTZSQVh8LDT1kDGOIuJEmmOI7nqxSgLJcIXM
+   IS_DEMO = false
+   USE_SUPABASE_AUTH = false
+   ```
+
+4. **Deploy**: Click "Create Web Service" and wait for deployment
+
+5. **Test Live Site**: Your app will be available at `https://mini-arcade-[random].onrender.com`
+
+### Supabase Database Migration
+
+Run this SQL in your Supabase Dashboard → SQL Editor:
+
+```sql
+-- Copy entire contents of supabase_schema.sql and run
+-- This creates the scores table, functions, and policies
+```
+
+Or via command line (if you have Supabase CLI):
+```bash
+supabase db reset
+supabase db push
+```
+
+### Post-Deployment Testing Checklist
+
+#### ✅ Authentication Tests
+- [ ] Register new account works
+- [ ] Login with credentials works  
+- [ ] Session persists after page reload
+- [ ] Logout clears session
+- [ ] Multiplayer requires login (redirects to auth)
+
+#### ✅ Multiplayer Tests  
+- [ ] Production mode enabled (no demo players)
+- [ ] Real-time player presence works
+- [ ] Score broadcasting between players works
+- [ ] Connection status shows "Connected" 
+- [ ] Heartbeat/ping system active (check console)
+
+#### ✅ Database Tests
+- [ ] Scores save to Supabase database
+- [ ] Leaderboards load from database
+- [ ] Hybrid local + database display works
+- [ ] Score validation prevents invalid data
+- [ ] Database health check passes
+
+#### ✅ Performance Tests
+- [ ] Games load quickly on mobile
+- [ ] Multiplayer notifications appear promptly
+- [ ] Database queries respond in <1 second
+- [ ] No console errors during gameplay
+
+### Two-Browser Testing Procedure
+
+1. **Open two different browsers** (e.g., Chrome and Firefox)
+2. **Register different accounts** in each:
+   - Browser 1: username "player1", password "test123"
+   - Browser 2: username "player2", password "test123"  
+3. **Switch both to multiplayer mode**
+4. **Open same game** (e.g., Reaction Test) in both browsers
+5. **Verify real-time features**:
+   - Each browser shows the other player in "Online Players" list
+   - Complete a game in browser 1 → browser 2 receives score notification
+   - Complete a game in browser 2 → browser 1 receives score notification
+   - Check database for both scores in Supabase dashboard
+
+### Environment Variable Reference
+
+| Variable | Purpose | Example Value |
+|----------|---------|---------------|
+| `SUPABASE_URL` | Your Supabase project URL | `https://wmrcrrfhyaqmyftxksty.supabase.co` |
+| `SUPABASE_KEY` | Your Supabase anon key | `eyJhbGciOiJIUzI1NiIs...` |
+| `IS_DEMO` | Enable/disable demo mode | `false` (production), `true` (demo) |
+| `USE_SUPABASE_AUTH` | Use Supabase Auth instead of local auth | `false` (local), `true` (Supabase) |
+
+### Debug Console Commands (Production)
+
+```javascript
+// Check production multiplayer status
+multiplayerDebug.getStatus()
+// Should show: {connected: true, mode: "production", playerCount: X}
+
+// Test database connection  
+scoresDebug.healthCheck()
+// Should show: {status: "healthy", database: true}
+
+// Check auth system
+authDebug.getUserStats()  
+// Should show current user and auth status
+
+// Manually test score saving
+scoresDebug.saveTestScore('reaction', 245)
+// Should save to database in production mode
+```
+
+### Troubleshooting Common Issues
+
+**❌ "Demo mode" still showing in production**:
+- Check environment variable `IS_DEMO=false` is set correctly
+- Verify environment variables are loaded (check console logs)
+
+**❌ Multiplayer not connecting**:  
+- Verify Supabase credentials are correct
+- Check Supabase project has Realtime enabled
+- Ensure no firewall/proxy blocking WebSocket connections
+
+**❌ Scores not saving to database**:
+- Check Supabase SQL migration ran successfully
+- Verify database table permissions (RLS policies)
+- Test database connection with health check
+
+**❌ Authentication redirects not working**:
+- Ensure auth.js is loaded before other scripts
+- Check localStorage is enabled in browser
+- Verify session timeout settings (24 hours default)
+
+This completes the production deployment guide for real multiplayer functionality!
 
 ## 🎮 How to Play
 

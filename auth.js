@@ -347,12 +347,28 @@ window.getCurrentUser = () => authInstance.getCurrentUser();
 window.requireAuth = (redirectUrl) => authInstance.requireAuth(redirectUrl);
 window.isAuthenticated = () => authInstance.isAuthenticated();
 
+// Check if Supabase Auth is enabled
+const useSupabaseAuth = () => {
+    const envVar = typeof process !== 'undefined' && process.env?.USE_SUPABASE_AUTH ||
+                   typeof window !== 'undefined' && window.env?.USE_SUPABASE_AUTH ||
+                   typeof window !== 'undefined' && window.USE_SUPABASE_AUTH;
+    return envVar === 'true';
+};
+
 // For debugging in console
 window.authDebug = {
     getUsers: () => authInstance.getUsers(),
     getUserStats: () => authInstance.getUserStats(),
     clearAllData: () => authInstance.clearAllData(),
-    findUser: (username) => authInstance.findUser(username)
+    findUser: (username) => authInstance.findUser(username),
+    useSupabaseAuth: () => useSupabaseAuth(),
+    switchToSupabase: () => {
+        console.log('🔄 To switch to Supabase Auth:');
+        console.log('1. Set environment variable: USE_SUPABASE_AUTH=true');
+        console.log('2. Include auth.supabase.js in your HTML pages');
+        console.log('3. Update auth forms to use supabaseSignIn/supabaseSignUp functions');
+        console.log('4. See auth.supabase.js for migration guide');
+    }
 };
 
 // Auto-redirect multiplayer pages that require auth
@@ -368,6 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-console.log('🎮 Mini Arcade Auth System loaded successfully!');
-console.log('💡 Type "authDebug" in console for debugging tools');
-console.log('🔐 Demo mode: Uses client-side hashing for demonstration only');
+console.log('MINI-ARCADE: Local Auth System loaded successfully!');
+console.log(`MINI-ARCADE: Supabase Auth ${useSupabaseAuth() ? 'ENABLED' : 'DISABLED'}`);
+console.log('MINI-ARCADE: Type "authDebug" in console for debugging tools');
+console.log('MINI-ARCADE: Call authDebug.switchToSupabase() for migration guide');

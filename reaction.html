@@ -129,8 +129,10 @@
         </div>
     </div>
 
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="auth.js"></script>
     <script src="supabase.js"></script>
+    <script src="scores.js"></script>
     <script>
         class ReactionGame {
             constructor() {
@@ -418,7 +420,10 @@
                 ).join('');
             }
 
-            saveScore(time) {
+            async saveScore(time) {
+                const currentUser = getCurrentUser();
+                const username = currentUser ? currentUser.username : 'Anonymous';
+                
                 // Get current scores
                 const currentBest = localStorage.getItem('reactionBest');
                 const recentScores = JSON.parse(localStorage.getItem('reactionRecent') || '[]');
@@ -448,12 +453,32 @@
                 }
                 localStorage.setItem('reactionRecent', JSON.stringify(recentScores));
                 
-                // Update recent scores display
-                this.updateRecentScoresList(recentScores);
+                // Save to database if available
+                try {
+                    if (window.saveScore) {
+                        const saveResult = await saveScore('reaction', username, time, {
+                            isNewRecord: isNewRecord,
+                            totalGames: recentScores.length,
+                            accuracy: 100,
+                            timestamp: new Date().toISOString()
+                        });
+                        
+                        if (saveResult.database) {
+                            console.log('MINI-ARCADE: Score saved to database successfully');
+                        } else if (saveResult.local) {
+                            console.log('MINI-ARCADE: Score saved locally only');
+                        }
+                    }
+                } catch (error) {
+                    console.error('MINI-ARCADE: Failed to save score to database:', error);
+                }
+                
+                // Update leaderboard display with hybrid data
+                this.updateHybridLeaderboard();
                 
                 // Broadcast score in multiplayer mode
                 if (this.isMultiplayer && this.multiplayer) {
-                    console.log(`📡 Broadcasting reaction score: ${time}ms`);
+                    console.log(`MINI-ARCADE: Broadcasting reaction score: ${time}ms`);
                     this.multiplayer.broadcastScore('reaction', time, {
                         isNewRecord: isNewRecord,
                         totalGames: recentScores.length,
@@ -462,6 +487,37 @@
                 }
                 
                 return isNewRecord;
+            }
+
+            async updateHybridLeaderboard() {
+                try {
+                    // Get hybrid leaderboard data
+                    if (window.getHybridLeaderboard) {
+                        const hybrid = await getHybridLeaderboard('reaction');
+                        
+                        if (hybrid.success) {
+                            // Update recent scores list with hybrid data
+                            const recentScores = hybrid.local.scores || [];
+                            this.updateRecentScoresList(recentScores.map(s => s.score));
+                            
+                            // If we have database scores, show a note
+                            if (hybrid.database.success && hybrid.database.scores.length > 0) {
+                                console.log('MINI-ARCADE: Hybrid leaderboard updated with database scores');
+                                
+                                // Add a small indicator that database scores are available
+                                const recentHeader = document.querySelector('#recentScoresList').parentElement.querySelector('.text-gray-300');
+                                if (recentHeader && !recentHeader.textContent.includes('🌐')) {
+                                    recentHeader.textContent = '🌐 Recent & Top Scores';
+                                }
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('MINI-ARCADE: Failed to update hybrid leaderboard:', error);
+                    // Fallback to local scores only
+                    const recentScores = JSON.parse(localStorage.getItem('reactionRecent') || '[]');
+                    this.updateRecentScoresList(recentScores);
+                }
             }
 
             showNewRecord() {
