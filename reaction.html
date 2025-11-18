@@ -497,27 +497,66 @@
                         
                         if (hybrid.success) {
                             // Update recent scores list with hybrid data
-                            const recentScores = hybrid.local.scores || [];
-                            this.updateRecentScoresList(recentScores.map(s => s.score));
+                            let displayScores = [];
                             
-                            // If we have database scores, show a note
-                            if (hybrid.database.success && hybrid.database.scores.length > 0) {
-                                console.log('MINI-ARCADE: Hybrid leaderboard updated with database scores');
+                            // In production mode, prioritize database scores
+                            if (!window.IS_DEMO && hybrid.database.success && hybrid.database.scores.length > 0) {
+                                displayScores = hybrid.database.scores.map(s => ({
+                                    score: s.score,
+                                    username: s.username,
+                                    source: 'database'
+                                }));
+                                console.log('MINI-ARCADE: Displaying database leaderboard scores');
                                 
-                                // Add a small indicator that database scores are available
+                                // Update header to show database integration
                                 const recentHeader = document.querySelector('#recentScoresList').parentElement.querySelector('.text-gray-300');
-                                if (recentHeader && !recentHeader.textContent.includes('🌐')) {
-                                    recentHeader.textContent = '🌐 Recent & Top Scores';
+                                if (recentHeader) {
+                                    recentHeader.textContent = '🌐 Global Leaderboard';
                                 }
+                            } else {
+                                // Fallback to local scores
+                                displayScores = hybrid.local.scores.map(s => ({
+                                    score: s.score,
+                                    username: s.username || 'You',
+                                    source: 'local'
+                                }));
+                                console.log('MINI-ARCADE: Displaying local scores only');
                             }
+                            
+                            this.updateRecentScoresList(displayScores);
                         }
                     }
                 } catch (error) {
                     console.error('MINI-ARCADE: Failed to update hybrid leaderboard:', error);
                     // Fallback to local scores only
                     const recentScores = JSON.parse(localStorage.getItem('reactionRecent') || '[]');
-                    this.updateRecentScoresList(recentScores);
+                    this.updateRecentScoresList(recentScores.map(s => ({
+                        score: s.score || s,
+                        username: 'You',
+                        source: 'local'
+                    })));
                 }
+            }
+
+            updateRecentScoresList(scores) {
+                if (!Array.isArray(scores) || scores.length === 0) {
+                    this.recentScoresList.innerHTML = '<div class="text-gray-400">No scores yet</div>';
+                    return;
+                }
+                
+                this.recentScoresList.innerHTML = scores.map((scoreData, index) => {
+                    // Handle both old format (just numbers) and new format (objects)
+                    const score = typeof scoreData === 'object' ? scoreData.score : scoreData;
+                    const username = typeof scoreData === 'object' ? scoreData.username : 'You';
+                    const source = typeof scoreData === 'object' ? scoreData.source : 'local';
+                    const sourceIcon = source === 'database' ? '🌐' : '📱';
+                    
+                    return `<div class="flex justify-between items-center text-gray-300">
+                        <span>#${index + 1}</span>
+                        <span class="text-xs">${username}</span>
+                        <span class="font-mono">${score}ms ${sourceIcon}</span>
+                    </div>`;
+                }).join('');
             }
 
             showNewRecord() {

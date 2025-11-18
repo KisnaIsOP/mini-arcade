@@ -363,7 +363,7 @@ This comprehensive testing ensures all authentication and multiplayer features w
 2. **Create Render Web Service**:
    - Go to [render.com](https://render.com) and sign up/login
    - Click "New +" → "Web Service"  
-   - Connect your GitHub repository: `mini-arcade`
+   - Connect your GitHub repository: `KisnaIsOP/mini-arcade`
    - Configure service:
      - **Name**: `mini-arcade`
      - **Region**: Choose closest to your location
@@ -374,11 +374,15 @@ This comprehensive testing ensures all authentication and multiplayer features w
 
 3. **Set Environment Variables** in Render dashboard:
    ```
-   SUPABASE_URL = https://wmrcrrfhyaqmyftxksty.supabase.co
-   SUPABASE_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndtcmNycmZoeWFxbXlmdHhrc3R5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0ODk1NzksImV4cCI6MjA3OTA2NTU3OX0.yKjmGSIMTZSQVh8LDT1kDGOIuJEmmOI7nqxSgLJcIXM
+   SUPABASE_URL = <SUPABASE_URL>
+   SUPABASE_KEY = <SUPABASE_KEY>
    IS_DEMO = false
    USE_SUPABASE_AUTH = false
    ```
+
+   **Replace placeholders with your actual Supabase credentials:**
+   - Get SUPABASE_URL and SUPABASE_KEY from your Supabase project dashboard
+   - Project Settings → API → Project URL and anon public key
 
 4. **Deploy**: Click "Create Web Service" and wait for deployment
 
@@ -401,32 +405,97 @@ supabase db push
 
 ### Post-Deployment Testing Checklist
 
-#### ✅ Authentication Tests
-- [ ] Register new account works
-- [ ] Login with credentials works  
-- [ ] Session persists after page reload
-- [ ] Logout clears session
-- [ ] Multiplayer requires login (redirects to auth)
+#### ✅ **Authentication Tests**
+```bash
+# Test on your live Render URL
+1. Register new account: username "testuser", password "test123"
+2. Login with credentials → should redirect to home page
+3. Reload page → should stay logged in
+4. Click logout → should clear session
+5. Try multiplayer without login → should redirect to auth
+```
 
-#### ✅ Multiplayer Tests  
-- [ ] Production mode enabled (no demo players)
-- [ ] Real-time player presence works
-- [ ] Score broadcasting between players works
-- [ ] Connection status shows "Connected" 
-- [ ] Heartbeat/ping system active (check console)
+#### ✅ **Production Mode Verification**
+```javascript
+// Open browser console on your live site
+multiplayerDebug.getStatus()
+// Expected: {connected: true, mode: "production", playerCount: X}
 
-#### ✅ Database Tests
-- [ ] Scores save to Supabase database
-- [ ] Leaderboards load from database
-- [ ] Hybrid local + database display works
-- [ ] Score validation prevents invalid data
-- [ ] Database health check passes
+multiplayerDebug.config()
+// Expected: {SUPABASE_URL: "your-project...", IS_DEMO: false}
 
-#### ✅ Performance Tests
-- [ ] Games load quickly on mobile
-- [ ] Multiplayer notifications appear promptly
+scoresDebug.config()
+// Expected: {IS_DEMO: false, hasSupabase: true, supabaseUrl: "your-project..."}
+```
+
+#### ✅ **Database Integration Tests**
+```javascript
+// Test database connection
+scoresDebug.healthCheck()
+// Expected: {status: "healthy", database: true, mode: "production"}
+
+// Test score saving
+scoresDebug.saveTestScore('reaction', 245)
+// Expected: {success: true, database: true, mode: "production"}
+
+// Test leaderboard fetching
+scoresDebug.fetchTop('reaction')
+// Expected: Database scores returned
+```
+
+#### ✅ **Real Multiplayer Tests**
+```bash
+# Two-browser test procedure:
+1. Open Chrome → Login as "player1" / "test123"
+2. Open Firefox → Login as "player2" / "test123"  
+3. Both switch to multiplayer mode
+4. Both open Reaction game → should see each other in "Online Players"
+5. Player1 completes game → Player2 should see score notification
+6. Player2 completes game → Player1 should see score notification
+7. Check console: "MINI-ARCADE: Connected to production Supabase"
+```
+
+#### ✅ **Expected Console Output (Success)**
+```
+MINI-ARCADE: Mode: PRODUCTION
+MINI-ARCADE: Connecting to your-project...
+MINI-ARCADE: Connected to production multiplayer
+MINI-ARCADE: Tracking presence for testuser
+MINI-ARCADE: Heartbeat started (20s intervals)
+MINI-ARCADE: Score saved to database successfully
+MINI-ARCADE: Displaying database leaderboard scores
+```
+
+#### ✅ **Performance & Mobile Tests**
+- [ ] Games load quickly on mobile devices
+- [ ] Multiplayer notifications appear within 2 seconds
 - [ ] Database queries respond in <1 second
 - [ ] No console errors during gameplay
+- [ ] Touch controls work on mobile
+- [ ] Responsive design displays correctly
+
+#### 🚨 **Common Issues & Solutions**
+
+**Issue**: Still shows "Demo mode" in console
+```javascript
+// Check environment variables are set correctly
+multiplayerDebug.config()
+// IS_DEMO should be false, SUPABASE_URL should be set
+```
+
+**Issue**: "No players online" in multiplayer
+```javascript
+// Check Supabase connection
+multiplayerDebug.getStatus()
+// connected should be true, mode should be "production"
+```
+
+**Issue**: Scores not saving to database
+```javascript
+// Test database health
+scoresDebug.healthCheck()
+// Should return {status: "healthy", database: true}
+```
 
 ### Two-Browser Testing Procedure
 

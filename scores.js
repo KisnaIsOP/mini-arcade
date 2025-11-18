@@ -10,50 +10,45 @@
  * - IS_DEMO: Set to 'false' for production database saving
  * 
  * Features:
- * - Save scores to Supabase database
+ * - Save scores to Supabase database when IS_DEMO=false
  * - Fetch top scores/leaderboards from database
  * - Hybrid local + database leaderboard display
  * - Graceful fallback to local scores if database unavailable
  * - Input validation and error handling
  */
 
+// Import configuration from supabase.js
+const IS_DEMO = window.IS_DEMO ?? true;
+const getEnvVar = (name, fallback = '') => {
+    if (typeof process !== 'undefined' && process.env && process.env[name]) {
+        return process.env[name];
+    }
+    if (typeof window !== 'undefined' && window.env && window.env[name]) {
+        return window.env[name];
+    }
+    if (typeof window !== 'undefined' && window[name]) {
+        return window[name];
+    }
+    return fallback;
+};
+
 class ScoresDatabase {
     constructor() {
         this.supabase = null;
-        this.isDemo = this.getEnvVar('IS_DEMO', 'true') === 'true';
-        this.SUPABASE_URL = this.getEnvVar('SUPABASE_URL', '');
-        this.SUPABASE_ANON_KEY = this.getEnvVar('SUPABASE_KEY', '');
+        this.SUPABASE_URL = getEnvVar('SUPABASE_URL', '');
+        this.SUPABASE_ANON_KEY = getEnvVar('SUPABASE_KEY', '');
         
         this.initSupabase();
         
-        console.log(`MINI-ARCADE: Scores database ${this.isDemo ? 'DISABLED (demo mode)' : 'ENABLED'}`);
-    }
-
-    /**
-     * Get environment variable with fallback
-     */
-    getEnvVar(name, fallback = '') {
-        if (typeof process !== 'undefined' && process.env && process.env[name]) {
-            return process.env[name];
-        }
-        
-        if (typeof window !== 'undefined' && window.env && window.env[name]) {
-            return window.env[name];
-        }
-        
-        if (typeof window !== 'undefined' && window[name]) {
-            return window[name];
-        }
-        
-        return fallback;
+        console.log(`MINI-ARCADE: Scores database ${IS_DEMO ? 'DISABLED (demo mode)' : 'ENABLED'}`);
     }
 
     /**
      * Initialize Supabase client for database operations
      */
     initSupabase() {
-        if (this.isDemo) {
-            console.log('MINI-ARCADE: Scores database disabled in demo mode');
+        if (IS_DEMO) {
+            console.log('MINI-ARCADE: Scores database disabled in demo mode (set IS_DEMO=false for production)');
             return;
         }
 
@@ -76,7 +71,7 @@ class ScoresDatabase {
     }
 
     /**
-     * Save a score to the database
+     * Save a score to the database and local storage
      * @param {string} game - Game name (reaction, clickspeed, aimtrainer, memory)
      * @param {string} username - Player username
      * @param {number} score - Game score
@@ -88,9 +83,9 @@ class ScoresDatabase {
         this.saveScoreLocally(game, username, score, meta);
 
         // Skip database save in demo mode
-        if (this.isDemo || !this.supabase) {
+        if (IS_DEMO || !this.supabase) {
             console.log(`MINI-ARCADE: Score saved locally only (demo mode): ${username} - ${score} in ${game}`);
-            return { success: true, local: true, database: false };
+            return { success: true, local: true, database: false, mode: 'demo' };
         }
 
         try {
@@ -123,6 +118,7 @@ class ScoresDatabase {
                 success: true, 
                 local: true, 
                 database: true, 
+                mode: 'production',
                 data: data 
             };
 
@@ -134,6 +130,7 @@ class ScoresDatabase {
                 success: true, 
                 local: true, 
                 database: false, 
+                mode: 'production',
                 error: error.message 
             };
         }
@@ -195,12 +192,13 @@ class ScoresDatabase {
      */
     async fetchTopScores(game, limit = 10) {
         // Always return local scores in demo mode
-        if (this.isDemo || !this.supabase) {
+        if (IS_DEMO || !this.supabase) {
+            console.log(`MINI-ARCADE: Fetching local scores only (demo mode): ${game}`);
             return this.getLocalTopScores(game, limit);
         }
 
         try {
-            console.log(`MINI-ARCADE: Fetching top ${limit} scores for ${game}`);
+            console.log(`MINI-ARCADE: Fetching top ${limit} scores for ${game} from database`);
 
             const { data, error } = await this.supabase
                 .rpc('get_top_scores', {
@@ -217,14 +215,20 @@ class ScoresDatabase {
             return {
                 success: true,
                 scores: data || [],
-                source: 'database'
+                source: 'database',
+                mode: 'production'
             };
 
         } catch (error) {
             console.error('MINI-ARCADE: Failed to fetch scores from database:', error);
             
             // Fallback to local scores
-            return this.getLocalTopScores(game, limit);
+            const localResult = this.getLocalTopScores(game, limit);
+            return {
+                ...localResult,
+                fallback: true,
+                error: error.message
+            };
         }
     }
 
@@ -256,7 +260,8 @@ class ScoresDatabase {
             return {
                 success: true,
                 scores: formattedScores,
-                source: 'local'
+                source: 'local',
+                mode: IS_DEMO ? 'demo' : 'production'
             };
 
         } catch (error) {
@@ -265,6 +270,7 @@ class ScoresDatabase {
                 success: false,
                 scores: [],
                 source: 'local',
+                mode: IS_DEMO ? 'demo' : 'production',
                 error: error.message
             };
         }
@@ -280,14 +286,15 @@ class ScoresDatabase {
             // Get local recent scores
             const localScores = this.getLocalTopScores(game, 5);
             
-            // Get database top scores (if available)
+            // Get database top scores (if available and not in demo mode)
             const databaseScores = await this.fetchTopScores(game, 10);
             
             return {
                 success: true,
                 local: localScores,
                 database: databaseScores,
-                hybrid: true
+                hybrid: true,
+                mode: IS_DEMO ? 'demo' : 'production'
             };
 
         } catch (error) {
@@ -299,6 +306,7 @@ class ScoresDatabase {
                 local: this.getLocalTopScores(game, 5),
                 database: { success: false, scores: [], source: 'database' },
                 hybrid: false,
+                mode: IS_DEMO ? 'demo' : 'production',
                 error: error.message
             };
         }
@@ -311,7 +319,7 @@ class ScoresDatabase {
      * @returns {Promise<object>} - User's best score
      */
     async getUserBestScore(game, username) {
-        if (this.isDemo || !this.supabase) {
+        if (IS_DEMO || !this.supabase) {
             return this.getLocalUserBest(game, username);
         }
 
@@ -330,7 +338,8 @@ class ScoresDatabase {
                 return {
                     success: true,
                     score: data[0],
-                    source: 'database'
+                    source: 'database',
+                    mode: 'production'
                 };
             }
 
@@ -359,21 +368,24 @@ class ScoresDatabase {
                         meta: {},
                         created_at: new Date().toISOString()
                     },
-                    source: 'local'
+                    source: 'local',
+                    mode: IS_DEMO ? 'demo' : 'production'
                 };
             }
 
             return {
                 success: false,
                 message: 'No local best score found',
-                source: 'local'
+                source: 'local',
+                mode: IS_DEMO ? 'demo' : 'production'
             };
 
         } catch (error) {
             return {
                 success: false,
                 error: error.message,
-                source: 'local'
+                source: 'local',
+                mode: IS_DEMO ? 'demo' : 'production'
             };
         }
     }
@@ -434,11 +446,12 @@ class ScoresDatabase {
      * @returns {Promise<object>} - Health check result
      */
     async healthCheck() {
-        if (this.isDemo || !this.supabase) {
+        if (IS_DEMO || !this.supabase) {
             return {
                 status: 'demo_mode',
                 database: false,
-                local: true
+                local: true,
+                mode: 'demo'
             };
         }
 
@@ -453,6 +466,7 @@ class ScoresDatabase {
                 status: 'healthy',
                 database: true,
                 local: true,
+                mode: 'production',
                 data: data
             };
 
@@ -461,6 +475,7 @@ class ScoresDatabase {
                 status: 'error',
                 database: false,
                 local: true,
+                mode: 'production',
                 error: error.message
             };
         }
@@ -483,8 +498,14 @@ window.scoresDebug = {
     fetchTop: (game) => scoresInstance.fetchTopScores(game),
     getHybrid: (game) => scoresInstance.getHybridLeaderboard(game),
     validateScore: (game, username, score) => scoresInstance.validateScore(game, username, score),
-    isDemo: () => scoresInstance.isDemo
+    isDemo: () => IS_DEMO,
+    config: () => ({
+        IS_DEMO: IS_DEMO,
+        hasSupabase: !!scoresInstance.supabase,
+        supabaseUrl: scoresInstance.SUPABASE_URL ? scoresInstance.SUPABASE_URL.replace(/.*\/\/([^.]+)\./, '$1...') : 'not set'
+    })
 };
 
 console.log('MINI-ARCADE: Scores database helper loaded');
+console.log(`MINI-ARCADE: Mode: ${IS_DEMO ? 'DEMO (local only)' : 'PRODUCTION (database enabled)'}`);
 console.log('MINI-ARCADE: Type "scoresDebug" in console for debugging tools');

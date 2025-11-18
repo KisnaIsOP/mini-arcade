@@ -2,7 +2,7 @@
  * Mini Arcade Production Multiplayer System with Supabase Integration
  * 
  * This module handles real-time multiplayer functionality using Supabase Realtime.
- * Now configured for production use with environment variables.
+ * Configured for production use with environment variables.
  * 
  * === ENVIRONMENT CONFIGURATION ===
  * Set these environment variables for production:
@@ -11,8 +11,8 @@
  * - IS_DEMO: Set to 'false' for production mode
  * 
  * For Render.com deployment, add these exact environment variables:
- * SUPABASE_URL = https://wmrcrrfhyaqmyftxksty.supabase.co
- * SUPABASE_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndtcmNycmZoeWFxbXlmdHhrc3R5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0ODk1NzksImV4cCI6MjA3OTA2NTU3OX0.yKjmGSIMTZSQVh8LDT1kDGOIuJEmmOI7nqxSgLJcIXM
+ * SUPABASE_URL = <SUPABASE_URL>
+ * SUPABASE_KEY = <SUPABASE_KEY>
  * IS_DEMO = false
  * 
  * Features:
@@ -22,28 +22,46 @@
  * - Robust connection handling with reconnect/backoff
  * - Heartbeat/ping system (20s intervals)
  * - Server timestamp validation
- * - Demo mode fallback for development
  * 
  * WARNING: Never commit actual credentials to version control!
  * Use environment variables or .env files that are gitignored.
  */
 
+// Environment configuration with fallbacks
+const getEnvVar = (name, fallback = '') => {
+    // Try multiple sources for environment variables
+    if (typeof process !== 'undefined' && process.env && process.env[name]) {
+        return process.env[name];
+    }
+    
+    if (typeof window !== 'undefined' && window.env && window.env[name]) {
+        return window.env[name];
+    }
+    
+    if (typeof window !== 'undefined' && window[name]) {
+        return window[name];
+    }
+    
+    return fallback;
+};
+
+// Production configuration
+const SUPABASE_URL = getEnvVar('SUPABASE_URL', '');
+const SUPABASE_KEY = getEnvVar('SUPABASE_KEY', '');
+const IS_DEMO = getEnvVar('IS_DEMO', 'true') === 'true';
+
+// Export for use by other modules
+window.IS_DEMO = IS_DEMO;
+
+// Development fallback (uncomment for local development without environment setup)
+/*
+const SUPABASE_URL = 'https://your-project-id.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
+const IS_DEMO = false;
+*/
+
 class SupabaseMultiplayer {
     constructor() {
-        // === ENVIRONMENT CONFIGURATION ===
-        // Read from environment variables (Render, Vercel, etc.)
-        this.SUPABASE_URL = this.getEnvVar('SUPABASE_URL', '');
-        this.SUPABASE_ANON_KEY = this.getEnvVar('SUPABASE_KEY', '');
-        this.isDemo = this.getEnvVar('IS_DEMO', 'true') === 'true';
-        
-        // Development fallback (comment out for production)
-        // Uncomment these lines for local development without environment setup
-        if (!this.SUPABASE_URL || !this.SUPABASE_ANON_KEY) {
-            console.warn('MINI-ARCADE: No Supabase credentials found in environment, using demo mode');
-            this.isDemo = true;
-        }
-        
-        // Internal properties
         this.supabase = null;
         this.channel = null;
         this.clientId = this.generateClientId();
@@ -55,38 +73,16 @@ class SupabaseMultiplayer {
         this.maxReconnectAttempts = 5;
         this.reconnectDelay = 1000; // Start with 1 second
         
-        console.log(`MINI-ARCADE: Initializing multiplayer (Demo: ${this.isDemo})`);
+        console.log(`MINI-ARCADE: Initializing multiplayer (Demo: ${IS_DEMO})`);
         this.initConnection();
-    }
-
-    /**
-     * Get environment variable with fallback
-     */
-    getEnvVar(name, fallback = '') {
-        // Try multiple sources for environment variables
-        if (typeof process !== 'undefined' && process.env && process.env[name]) {
-            return process.env[name];
-        }
-        
-        // Try window environment (set by build tools)
-        if (typeof window !== 'undefined' && window.env && window.env[name]) {
-            return window.env[name];
-        }
-        
-        // Try global environment
-        if (typeof window !== 'undefined' && window[name]) {
-            return window[name];
-        }
-        
-        return fallback;
     }
 
     /**
      * Initialize connection (demo or real Supabase)
      */
     async initConnection() {
-        if (this.isDemo) {
-            console.log('MINI-ARCADE: Running in demo mode - simulated multiplayer');
+        if (IS_DEMO) {
+            console.log('MINI-ARCADE: Demo mode - limited functionality (set IS_DEMO=false for production)');
             this.initDemoMode();
         } else {
             console.log('MINI-ARCADE: Connecting to production Supabase');
@@ -105,14 +101,14 @@ class SupabaseMultiplayer {
             }
 
             // Validate credentials
-            if (!this.SUPABASE_URL || !this.SUPABASE_ANON_KEY) {
+            if (!SUPABASE_URL || !SUPABASE_KEY) {
                 throw new Error('Missing Supabase credentials. Set SUPABASE_URL and SUPABASE_KEY environment variables.');
             }
 
-            console.log(`MINI-ARCADE: Connecting to ${this.SUPABASE_URL.replace(/.*\/\/([^.]+)\./, '$1...')}`);
+            console.log(`MINI-ARCADE: Connecting to ${SUPABASE_URL.replace(/.*\/\/([^.]+)\./, '$1...')}`);
 
             // Initialize Supabase client
-            this.supabase = window.supabase.createClient(this.SUPABASE_URL, this.SUPABASE_ANON_KEY);
+            this.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             
             // Create a channel for real-time communication
             this.channel = this.supabase
@@ -235,7 +231,7 @@ class SupabaseMultiplayer {
     }
 
     /**
-     * Start heartbeat to maintain connection
+     * Start heartbeat to maintain connection (20 second intervals)
      */
     startHeartbeat() {
         if (this.heartbeatInterval) {
@@ -261,8 +257,7 @@ class SupabaseMultiplayer {
         this.isConnected = false;
         
         if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-            console.error('MINI-ARCADE: Max reconnection attempts reached, falling back to demo mode');
-            this.fallbackToDemo();
+            console.error('MINI-ARCADE: Max reconnection attempts reached, staying disconnected');
             return;
         }
 
@@ -278,23 +273,14 @@ class SupabaseMultiplayer {
     }
 
     /**
-     * Fallback to demo mode if production fails
-     */
-    fallbackToDemo() {
-        console.log('MINI-ARCADE: Falling back to demo mode due to connection issues');
-        this.isDemo = true;
-        this.isConnected = false;
-        this.initDemoMode();
-    }
-
-    /**
-     * Initialize demo mode with local simulation
+     * Initialize demo mode (limited functionality for development)
      */
     initDemoMode() {
-        this.isConnected = true;
-        console.log('MINI-ARCADE: Demo multiplayer initialized');
+        this.isConnected = false;
+        console.log('MINI-ARCADE: Demo mode - real multiplayer disabled');
+        console.log('MINI-ARCADE: To enable production multiplayer, set IS_DEMO=false');
         
-        // Add current user as a player
+        // Add current user as a player for UI consistency
         const currentUser = getCurrentUser();
         if (currentUser) {
             this.addPlayer({
@@ -303,11 +289,8 @@ class SupabaseMultiplayer {
                 joinTime: new Date().toISOString()
             });
         }
-        
-        // Only simulate demo players in demo mode
-        if (this.isDemo) {
-            setTimeout(() => this.simulateDemoPlayers(), 1000);
-        }
+
+        // NO demo players in production setup - only real users
     }
 
     /**
@@ -358,9 +341,9 @@ class SupabaseMultiplayer {
      * Generic broadcast method
      */
     broadcast(event, data) {
-        if (this.isDemo) {
-            // In demo mode, just log and simulate
-            console.log(`MINI-ARCADE: [DEMO] Broadcasting ${event}:`, data);
+        // Skip broadcasting in demo mode
+        if (IS_DEMO) {
+            console.log(`MINI-ARCADE: [DEMO] Would broadcast ${event} (disabled in demo mode)`);
             return;
         }
 
@@ -376,6 +359,8 @@ class SupabaseMultiplayer {
             }).catch(error => {
                 console.error('MINI-ARCADE: Broadcast failed:', error);
             });
+        } else {
+            console.warn('MINI-ARCADE: Cannot broadcast - not connected to Supabase');
         }
     }
 
@@ -423,7 +408,7 @@ class SupabaseMultiplayer {
         this.showScoreNotification(data);
         
         // Save to database if not in demo mode
-        if (!this.isDemo && window.saveScore) {
+        if (!IS_DEMO && window.saveScore) {
             window.saveScore(data.game, data.user, data.score, {
                 timestamp: data.serverTimestamp,
                 clientId: data.id
@@ -441,7 +426,7 @@ class SupabaseMultiplayer {
     }
 
     /**
-     * Add player to active list (for demo mode)
+     * Add player to active list (for demo mode compatibility)
      */
     addPlayer(playerData) {
         this.activePlayers.set(playerData.id, playerData);
@@ -449,7 +434,7 @@ class SupabaseMultiplayer {
     }
 
     /**
-     * Remove player from active list (for demo mode)
+     * Remove player from active list
      */
     removePlayer(playerId) {
         this.activePlayers.delete(playerId);
@@ -578,81 +563,6 @@ class SupabaseMultiplayer {
     }
 
     /**
-     * Simulate demo players (only in demo mode)
-     */
-    simulateDemoPlayers() {
-        if (!this.isDemo) return; // Only run in demo mode
-        
-        const demoPlayerNames = [
-            'AlexGamer', 'PixelMaster', 'SpeedRunner', 'ProGamer'
-        ];
-
-        // Randomly add 2-3 demo players
-        const numPlayers = 2 + Math.floor(Math.random() * 2);
-        const selectedPlayers = demoPlayerNames
-            .sort(() => Math.random() - 0.5)
-            .slice(0, numPlayers);
-
-        selectedPlayers.forEach((playerName, index) => {
-            setTimeout(() => {
-                const playerData = {
-                    user: playerName,
-                    id: `demo_${playerName.toLowerCase()}`,
-                    joinTime: new Date().toISOString()
-                };
-                
-                this.addPlayer(playerData);
-                this.showPlayerNotification(`${playerName} joined the game!`, 'join');
-
-                // Simulate occasional scores from demo players
-                setTimeout(() => {
-                    this.simulateDemoScore(playerData);
-                }, Math.random() * 10000 + 5000);
-
-            }, index * 1000 + Math.random() * 2000);
-        });
-    }
-
-    /**
-     * Simulate scores from demo players (only in demo mode)
-     */
-    simulateDemoScore(playerData) {
-        if (!this.isDemo || !this.activePlayers.has(playerData.id)) return;
-
-        const games = ['reaction', 'clickspeed', 'aimtrainer', 'memory'];
-        const randomGame = games[Math.floor(Math.random() * games.length)];
-        
-        let score;
-        switch (randomGame) {
-            case 'reaction':
-                score = Math.floor(Math.random() * 200) + 150; // 150-350ms
-                break;
-            case 'clickspeed':
-                score = (Math.random() * 8 + 4).toFixed(1); // 4-12 CPS
-                break;
-            case 'aimtrainer':
-                score = Math.floor(Math.random() * 60) + 20; // 20-80 points
-                break;
-            case 'memory':
-                score = Math.floor(Math.random() * 30) + 20; // 20-50 seconds
-                break;
-        }
-
-        this.handleScoreUpdate({
-            user: playerData.user,
-            id: playerData.id,
-            game: randomGame,
-            score: score,
-            timestamp: Date.now()
-        });
-
-        // Schedule next score (if still online)
-        setTimeout(() => {
-            this.simulateDemoScore(playerData);
-        }, Math.random() * 20000 + 10000); // 10-30 seconds
-    }
-
-    /**
      * Get list of active players
      */
     getActivePlayers() {
@@ -663,7 +573,7 @@ class SupabaseMultiplayer {
      * Check if multiplayer is connected
      */
     isMultiplayerConnected() {
-        return this.isConnected;
+        return this.isConnected && !IS_DEMO;
     }
 
     /**
@@ -672,16 +582,16 @@ class SupabaseMultiplayer {
     getStatus() {
         return {
             connected: this.isConnected,
-            mode: this.isDemo ? 'demo' : 'production',
+            mode: IS_DEMO ? 'demo' : 'production',
             playerCount: this.activePlayers.size,
             clientId: this.clientId,
             reconnectAttempts: this.reconnectAttempts,
-            supabaseUrl: this.SUPABASE_URL ? this.SUPABASE_URL.replace(/.*\/\/([^.]+)\./, '$1...') : 'not configured'
+            supabaseUrl: SUPABASE_URL ? SUPABASE_URL.replace(/.*\/\/([^.]+)\./, '$1...') : 'not configured'
         };
     }
 
     /**
-     * Disconnect from multiplayer
+     * Disconnect from multiplayer with proper cleanup
      */
     disconnect() {
         console.log('MINI-ARCADE: Disconnecting from multiplayer');
@@ -691,7 +601,7 @@ class SupabaseMultiplayer {
             this.heartbeatInterval = null;
         }
 
-        if (this.channel && !this.isDemo) {
+        if (this.channel && !IS_DEMO) {
             this.channel.untrack();
             this.channel.unsubscribe();
             this.channel = null;
@@ -741,7 +651,12 @@ window.multiplayerDebug = {
     reconnect: () => {
         disconnectMultiplayer();
         return initMultiplayer();
-    }
+    },
+    isDemo: () => IS_DEMO,
+    config: () => ({
+        SUPABASE_URL: SUPABASE_URL ? SUPABASE_URL.replace(/.*\/\/([^.]+)\./, '$1...') : 'not set',
+        IS_DEMO: IS_DEMO
+    })
 };
 
 // Auto-initialize if in multiplayer mode and authenticated
@@ -759,5 +674,5 @@ window.addEventListener('beforeunload', () => {
 });
 
 console.log('MINI-ARCADE: Supabase Multiplayer System loaded successfully!');
-console.log('MINI-ARCADE: Production mode configured with environment variables');
+console.log(`MINI-ARCADE: Mode: ${IS_DEMO ? 'DEMO' : 'PRODUCTION'}`);
 console.log('MINI-ARCADE: Type "multiplayerDebug" in console for debugging tools');
