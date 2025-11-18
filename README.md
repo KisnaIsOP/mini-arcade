@@ -563,6 +563,164 @@ scoresDebug.saveTestScore('reaction', 245)
 
 This completes the production deployment guide for real multiplayer functionality!
 
+## ⏰ Keep-Alive System (Render Free Tier)
+
+Your Mini Arcade includes a complete keep-alive system to prevent Render free tier cold starts and ensure your app stays responsive.
+
+### 🔧 **Built-in Keep-Alive Features:**
+
+#### **Server-Side Health Endpoint:**
+- **`/health`** - Returns server status, uptime, and memory usage
+- **`/api/status`** - Returns service information and environment details
+- Lightweight JSON responses for monitoring
+
+#### **Client-Side Pinger:**
+- **`pinger.js`** - Automatically pings `/health` every 60 seconds
+- **Smart Error Handling** - Exponential backoff on failures
+- **Page Lifecycle Aware** - Starts/stops with page load/unload
+- **No UI Interference** - Runs silently in background
+
+### 🔍 **Testing Your Keep-Alive System:**
+
+#### **Test Health Endpoint:**
+```bash
+# Test locally
+curl http://localhost:3000/health
+
+# Test on Render (replace with your URL)
+curl https://your-app.onrender.com/health
+
+# Expected response:
+{
+  "status": "ok",
+  "timestamp": "2024-01-01T12:00:00.000Z",
+  "uptime": 123.45,
+  "memory": {...},
+  "pid": 12345
+}
+```
+
+#### **Test Client-Side Pinger:**
+```javascript
+// Open browser console on your site
+keepAliveDebug.status()
+// Expected: {active: true, timerSet: true, retryCount: 0, interval: "60s"}
+
+keepAliveDebug.test()
+// Manually trigger a health check
+
+// Watch for console logs:
+// "MINI-ARCADE: Keep-alive ping successful (123ms) - Status: ok"
+```
+
+### 🤖 **Set Up UptimeRobot (External Monitoring)**
+
+For additional reliability, set up external monitoring with UptimeRobot:
+
+#### **Step 1: Create UptimeRobot Account**
+1. Go to [https://uptimerobot.com](https://uptimerobot.com)
+2. **Sign up** for a free account
+3. **Verify your email** and log in
+
+#### **Step 2: Add Monitor**
+1. Click **"+ Add New Monitor"**
+2. Configure monitor:
+   - **Monitor Type**: `HTTP(s)`
+   - **Friendly Name**: `Mini Arcade Health`
+   - **URL**: `https://your-app.onrender.com/health`
+   - **Monitoring Interval**: `5 minutes` (free tier limit)
+   - **Monitor Timeout**: `30 seconds`
+   - **HTTP Method**: `GET`
+
+#### **Step 3: Set Up Alerts (Optional)**
+1. **Alert Contacts**: Add your email for downtime notifications
+2. **Alert Settings**: 
+   - Alert when down for: `2 minutes`
+   - Send notification every: `6 hours` (to avoid spam)
+
+#### **Step 4: Save and Test**
+1. **Click "Create Monitor"**
+2. **Wait 5 minutes** for first check
+3. **Verify status** shows "Up" in dashboard
+
+### 📊 **Benefits of Keep-Alive System:**
+
+#### **Prevents Cold Starts:**
+- **Render free tier** puts apps to sleep after 15 minutes of inactivity
+- **Client-side pinger** keeps app warm when users are active
+- **External monitoring** maintains uptime even when no users online
+- **Faster response times** for new visitors
+
+#### **Improved User Experience:**
+- **No 10-30 second delays** when accessing dormant app
+- **Consistent performance** throughout the day
+- **Reliable multiplayer** connections
+- **Better SEO** due to faster response times
+
+### 🔧 **Keep-Alive Configuration:**
+
+#### **Client-Side Settings (pinger.js):**
+```javascript
+// Ping interval (default: 60 seconds)
+KEEP_ALIVE_INTERVAL: 60000
+
+// Maximum retry interval (default: 5 minutes)  
+MAX_RETRY_INTERVAL: 300000
+
+// Auto-starts 5 seconds after page load
+// Stops when page unloads or goes offline
+```
+
+#### **Server-Side Health Check:**
+```javascript
+// Health endpoint returns:
+{
+  status: "ok",           // Always "ok" if server responding
+  timestamp: "ISO date",  // Current server time
+  uptime: 123.45,         // Seconds since server start
+  memory: {...},          // Memory usage stats
+  pid: 12345             // Process ID
+}
+```
+
+### 🚨 **Monitoring Your Keep-Alive:**
+
+#### **Expected Console Logs:**
+```
+MINI-ARCADE: Keep-alive system initialized
+MINI-ARCADE: Keep-alive started (60s intervals)
+MINI-ARCADE: Keep-alive ping successful (95ms) - Status: ok
+```
+
+#### **Warning Signs:**
+```
+MINI-ARCADE: Keep-alive ping failed: Failed to fetch
+MINI-ARCADE: Will retry keep-alive in 120s (attempt 2)
+MINI-ARCADE: Keep-alive failed after 3 retries, stopping
+```
+
+#### **Debug Commands:**
+```javascript
+// Check keep-alive status
+keepAliveDebug.status()
+
+// Manually test health endpoint
+keepAliveDebug.test()
+
+// Start/stop manually
+keepAliveDebug.start()
+keepAliveDebug.stop()
+```
+
+### ⚡ **Performance Impact:**
+
+- **Minimal**: Health checks use <1KB of data
+- **Background**: No interference with gameplay
+- **Smart**: Reduces frequency on connection issues
+- **Efficient**: Only runs when page is active
+
+This keep-alive system ensures your Mini Arcade stays responsive 24/7 on Render's free tier! 🚀
+
 ## 🎮 How to Play
 
 ### Reaction Test
