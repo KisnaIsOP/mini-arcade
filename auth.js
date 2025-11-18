@@ -11,13 +11,16 @@
  * - Client-side password hashing with Web Crypto API (SHA-256)
  * - User registration and login
  * - Session management with localStorage
+ * - 24-hour session expiry
  * - Input validation and error handling
+ * - Auto-redirect for multiplayer games
  */
 
 class MiniArcadeAuth {
     constructor() {
         this.USERS_KEY = 'miniArcade_users';
         this.SESSION_KEY = 'miniArcade_currentUser';
+        this.SESSION_EXPIRY_HOURS = 24;
     }
 
     /**
@@ -55,11 +58,6 @@ class MiniArcadeAuth {
         if (password.length > 128) {
             return { valid: false, error: 'Password is too long (max 128 characters)' };
         }
-
-        // Optional: Add more strength requirements
-        // if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
-        //     return { valid: false, error: 'Password must contain uppercase, lowercase, and number' };
-        // }
 
         return { valid: true };
     }
@@ -119,7 +117,7 @@ class MiniArcadeAuth {
     }
 
     /**
-     * Find user by username
+     * Find user by username (case-insensitive)
      * @param {string} username - Username to search for
      * @returns {object|null} - User object or null if not found
      */
@@ -180,7 +178,7 @@ class MiniArcadeAuth {
             users.push(newUser);
             this.saveUsers(users);
 
-            console.log(`User registered successfully: ${cleanUsername}`);
+            console.log(`🎮 User registered successfully: ${cleanUsername}`);
             return { success: true, message: 'Account created successfully!' };
 
         } catch (error) {
@@ -231,7 +229,7 @@ class MiniArcadeAuth {
 
             localStorage.setItem(this.SESSION_KEY, JSON.stringify(sessionUser));
 
-            console.log(`User logged in successfully: ${user.username}`);
+            console.log(`🎮 User logged in successfully: ${user.username}`);
             return { success: true, user: sessionUser, message: 'Login successful!' };
 
         } catch (error) {
@@ -248,7 +246,7 @@ class MiniArcadeAuth {
         try {
             const currentUser = this.getCurrentUser();
             if (currentUser) {
-                console.log(`User logged out: ${currentUser.username}`);
+                console.log(`🎮 User logged out: ${currentUser.username}`);
             }
             
             localStorage.removeItem(this.SESSION_KEY);
@@ -270,13 +268,13 @@ class MiniArcadeAuth {
             
             const user = JSON.parse(session);
             
-            // Optional: Check session expiry (e.g., 24 hours)
+            // Check session expiry
             const loginTime = new Date(user.loginTime);
             const now = new Date();
             const hoursSinceLogin = (now - loginTime) / (1000 * 60 * 60);
             
-            if (hoursSinceLogin > 24) {
-                console.log('Session expired, logging out');
+            if (hoursSinceLogin > this.SESSION_EXPIRY_HOURS) {
+                console.log('🎮 Session expired, logging out');
                 this.logout();
                 return null;
             }
@@ -298,7 +296,7 @@ class MiniArcadeAuth {
         const currentUser = this.getCurrentUser();
         if (!currentUser) {
             const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-            window.location.href = `${redirectUrl}?return=${encodeURIComponent(currentPage)}`;
+            window.location.href = `${redirectUrl}?return=${encodeURIComponent(currentPage + window.location.search)}`;
             return false;
         }
         return true;
@@ -313,7 +311,7 @@ class MiniArcadeAuth {
     }
 
     /**
-     * Get user stats for debugging/admin purposes
+     * Get user statistics for debugging
      * @returns {object} - User statistics
      */
     getUserStats() {
@@ -323,8 +321,18 @@ class MiniArcadeAuth {
         return {
             totalUsers: users.length,
             currentUser: currentUser ? currentUser.username : null,
-            isAuthenticated: this.isAuthenticated()
+            isAuthenticated: this.isAuthenticated(),
+            sessionExpiryHours: this.SESSION_EXPIRY_HOURS
         };
+    }
+
+    /**
+     * Clear all authentication data (for testing)
+     */
+    clearAllData() {
+        localStorage.removeItem(this.USERS_KEY);
+        localStorage.removeItem(this.SESSION_KEY);
+        console.log('🎮 All authentication data cleared');
     }
 }
 
@@ -343,11 +351,23 @@ window.isAuthenticated = () => authInstance.isAuthenticated();
 window.authDebug = {
     getUsers: () => authInstance.getUsers(),
     getUserStats: () => authInstance.getUserStats(),
-    clearAllUsers: () => {
-        localStorage.removeItem(authInstance.USERS_KEY);
-        localStorage.removeItem(authInstance.SESSION_KEY);
-        console.log('All auth data cleared');
-    }
+    clearAllData: () => authInstance.clearAllData(),
+    findUser: (username) => authInstance.findUser(username)
 };
 
-console.log('Mini Arcade Auth System loaded. Type authDebug in console for debugging tools.');
+// Auto-redirect multiplayer pages that require auth
+document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const isMultiplayerMode = urlParams.get('mode') === 'multiplayer';
+    
+    if (isMultiplayerMode && !authInstance.isAuthenticated()) {
+        // Don't redirect if we're already on the auth page
+        if (!window.location.pathname.includes('auth.html')) {
+            authInstance.requireAuth();
+        }
+    }
+});
+
+console.log('🎮 Mini Arcade Auth System loaded successfully!');
+console.log('💡 Type "authDebug" in console for debugging tools');
+console.log('🔐 Demo mode: Uses client-side hashing for demonstration only');

@@ -47,8 +47,11 @@
             <!-- Multiplayer Player List -->
             <div id="multiplayerInfo" class="hidden mb-6">
                 <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4 max-w-md mx-auto">
-                    <div class="text-sm text-gray-300 mb-2">🌐 Online Players</div>
-                    <div id="playerList" class="space-y-1">
+                    <div class="text-sm text-gray-300 mb-2 flex items-center justify-center space-x-2">
+                        <span>🌐 Online Players</span>
+                        <div id="connectionStatus" class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    </div>
+                    <div id="playerList" class="space-y-1 max-h-32 overflow-y-auto">
                         <div class="text-gray-400 text-sm">Loading players...</div>
                     </div>
                 </div>
@@ -57,7 +60,7 @@
             <h1 class="text-4xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400 mb-4">
                 ⚡ Reaction Test
             </h1>
-            <p class="text-lg text-gray-300">Click as fast as you can when the color changes!</p>
+            <p class="text-lg text-gray-300" id="gameDescription">Click as fast as you can when the color changes!</p>
         </header>
 
         <!-- Game Area -->
@@ -162,10 +165,12 @@
                 
                 const gameModeEl = document.getElementById('gameMode');
                 const multiplayerInfo = document.getElementById('multiplayerInfo');
+                const gameDescription = document.getElementById('gameDescription');
                 
                 if (this.isMultiplayer) {
                     // Check authentication for multiplayer
                     if (!isAuthenticated()) {
+                        console.log('🔐 Not authenticated, redirecting to auth page');
                         window.location.href = 'auth.html?return=' + encodeURIComponent(window.location.href);
                         return;
                     }
@@ -173,12 +178,18 @@
                     gameModeEl.textContent = 'Multiplayer';
                     gameModeEl.className = 'text-lg font-bold text-green-400';
                     multiplayerInfo.classList.remove('hidden');
+                    gameDescription.textContent = 'Compete with others in real-time! Click when it turns green!';
+                    
+                    console.log('🌐 Initializing multiplayer mode for Reaction Test');
                     
                     // Initialize multiplayer
                     this.initMultiplayer();
                 } else {
                     gameModeEl.textContent = 'Singleplayer';
                     gameModeEl.className = 'text-lg font-bold text-purple-400';
+                    gameDescription.textContent = 'Click as fast as you can when the color changes!';
+                    
+                    console.log('🎯 Running in singleplayer mode');
                 }
             }
 
@@ -186,34 +197,82 @@
                 try {
                     this.multiplayer = initMultiplayer();
                     
-                    // Listen for score updates from other players
+                    // Listen for various multiplayer events
                     this.multiplayer.onMessage('score_update', (data) => {
                         if (data.game === 'reaction') {
                             this.handleMultiplayerScore(data);
                         }
                     });
+
+                    this.multiplayer.onMessage('player_join', (data) => {
+                        this.showPlayerNotification(`${data.user} joined the game!`, 'join');
+                    });
+
+                    this.multiplayer.onMessage('player_leave', (data) => {
+                        this.showPlayerNotification(`${data.user} left the game`, 'leave');
+                    });
+                    
+                    // Update connection status
+                    this.updateConnectionStatus(true);
                     
                     console.log('🌐 Multiplayer initialized for Reaction Test');
+                    
+                    // Set up periodic connection check
+                    setInterval(() => {
+                        this.updateConnectionStatus(this.multiplayer.isMultiplayerConnected());
+                    }, 5000);
+                    
                 } catch (error) {
                     console.error('Failed to initialize multiplayer:', error);
+                    this.updateConnectionStatus(false);
                 }
             }
 
-            handleMultiplayerScore(data) {
-                // Show a brief notification when another player completes the game
+            updateConnectionStatus(connected) {
+                const statusEl = document.getElementById('connectionStatus');
+                if (connected) {
+                    statusEl.className = 'w-2 h-2 bg-green-500 rounded-full animate-pulse';
+                } else {
+                    statusEl.className = 'w-2 h-2 bg-red-500 rounded-full';
+                }
+            }
+
+            showPlayerNotification(message, type) {
                 const notification = document.createElement('div');
-                notification.className = 'fixed top-4 right-4 bg-blue-500/90 backdrop-blur-sm border border-blue-300/30 text-white p-4 rounded-xl shadow-lg z-50 animate-pulse';
+                const bgColor = type === 'join' ? 'bg-green-500/90' : 'bg-orange-500/90';
+                const icon = type === 'join' ? '👋' : '🚪';
+                
+                notification.className = `fixed top-4 left-4 ${bgColor} backdrop-blur-sm border border-white/30 text-white p-3 rounded-xl shadow-lg z-50 transform transition-all duration-300`;
                 notification.innerHTML = `
-                    <div class="text-sm font-bold">🏆 ${data.user} scored!</div>
-                    <div class="text-xs">${data.score}ms reaction time</div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-lg">${icon}</span>
+                        <span class="text-sm font-medium">${message}</span>
+                    </div>
                 `;
                 
                 document.body.appendChild(notification);
                 
                 // Remove after 3 seconds
                 setTimeout(() => {
-                    notification.remove();
+                    notification.style.transform = 'translateX(-100%)';
+                    setTimeout(() => notification.remove(), 300);
                 }, 3000);
+            }
+
+            handleMultiplayerScore(data) {
+                console.log(`🏆 Received score from ${data.user}: ${data.score}ms`);
+                
+                // Show score notification (already handled by supabase.js)
+                // We can add game-specific handling here if needed
+                
+                // Optional: Update a competitive leaderboard in the UI
+                this.updateLiveLeaderboard(data);
+            }
+
+            updateLiveLeaderboard(data) {
+                // This could be expanded to show a live leaderboard of recent scores
+                // For now, we'll just log it
+                console.log(`📊 Live score update: ${data.user} - ${data.score}ms`);
             }
 
             bindEvents() {
@@ -394,9 +453,11 @@
                 
                 // Broadcast score in multiplayer mode
                 if (this.isMultiplayer && this.multiplayer) {
+                    console.log(`📡 Broadcasting reaction score: ${time}ms`);
                     this.multiplayer.broadcastScore('reaction', time, {
                         isNewRecord: isNewRecord,
-                        totalGames: recentScores.length
+                        totalGames: recentScores.length,
+                        accuracy: 100 // Reaction game is always 100% if completed
                     });
                 }
                 

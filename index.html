@@ -187,6 +187,7 @@
     </div>
 
     <script src="auth.js"></script>
+    <script src="supabase.js"></script>
     <script>
         class MiniArcadeHome {
             constructor() {
@@ -208,6 +209,7 @@
 
                 this.initAuth();
                 this.initModeSelection();
+                this.initMultiplayerStatus();
                 this.loadBestScores();
                 this.initSparkles();
             }
@@ -221,10 +223,15 @@
                 if (currentUser) {
                     userStatus.classList.remove('hidden');
                     username.textContent = currentUser.username;
+                    console.log(`🎮 Welcome back, ${currentUser.username}!`);
                 }
 
                 logoutBtn.addEventListener('click', () => {
                     logout();
+                    // Disconnect from multiplayer if connected
+                    if (window.disconnectMultiplayer) {
+                        disconnectMultiplayer();
+                    }
                     location.reload();
                 });
             }
@@ -232,8 +239,6 @@
             initModeSelection() {
                 const singleplayerBtn = document.getElementById('singleplayerMode');
                 const multiplayerBtn = document.getElementById('multiplayerMode');
-                const singleplayerDesc = document.getElementById('singleplayerDesc');
-                const multiplayerDesc = document.getElementById('multiplayerDesc');
 
                 // Mode switching
                 singleplayerBtn.addEventListener('click', () => {
@@ -261,31 +266,89 @@
                     multiplayerBtn.className = 'mode-btn px-6 py-3 rounded-xl font-semibold transition-all duration-300 text-gray-400 hover:text-white';
                     singleplayerDesc.classList.remove('hidden');
                     multiplayerDesc.classList.add('hidden');
+                    
+                    // Disconnect from multiplayer
+                    if (window.disconnectMultiplayer) {
+                        disconnectMultiplayer();
+                    }
                 } else {
                     multiplayerBtn.className = 'mode-btn px-6 py-3 rounded-xl font-semibold transition-all duration-300 bg-gradient-to-r from-green-500 to-blue-500 text-white shadow-lg';
                     singleplayerBtn.className = 'mode-btn px-6 py-3 rounded-xl font-semibold transition-all duration-300 text-gray-400 hover:text-white';
                     multiplayerDesc.classList.remove('hidden');
                     singleplayerDesc.classList.add('hidden');
+                    
+                    // Initialize multiplayer if authenticated
+                    if (isAuthenticated()) {
+                        this.initMultiplayerConnection();
+                    }
                 }
 
                 this.updateGameLinks();
+                console.log(`🎮 Switched to ${mode} mode`);
+            }
+
+            initMultiplayerConnection() {
+                try {
+                    if (window.initMultiplayer) {
+                        const multiplayer = initMultiplayer();
+                        console.log('🌐 Multiplayer initialized on home page');
+                        
+                        // Update multiplayer status indicator
+                        const status = multiplayer.getStatus();
+                        this.updateMultiplayerStatus(status);
+                    }
+                } catch (error) {
+                    console.error('Failed to initialize multiplayer:', error);
+                }
+            }
+
+            initMultiplayerStatus() {
+                // Update multiplayer status periodically
+                setInterval(() => {
+                    if (window.getMultiplayer && this.currentMode === 'multiplayer') {
+                        const multiplayer = getMultiplayer();
+                        if (multiplayer) {
+                            const status = multiplayer.getStatus();
+                            this.updateMultiplayerStatus(status);
+                        }
+                    }
+                }, 5000);
+            }
+
+            updateMultiplayerStatus(status) {
+                const statusIndicator = document.getElementById('multiplayerStatus');
+                if (status && status.connected) {
+                    statusIndicator.className = 'w-3 h-3 bg-green-500 rounded-full animate-pulse';
+                } else {
+                    statusIndicator.className = 'w-3 h-3 bg-yellow-500 rounded-full animate-pulse';
+                }
             }
 
             updateGameLinks() {
                 // Update all game card links
-                const gameCards = document.querySelectorAll('a[href$=".html"]');
+                const gameCards = document.querySelectorAll('a[href$=".html"], a[href*="?mode="]');
                 gameCards.forEach(card => {
                     const originalHref = card.getAttribute('href');
-                    const gameName = originalHref.split('.html')[0];
+                    let gameName = originalHref.split('.html')[0].split('?')[0];
+                    
+                    // Handle already parameterized URLs
+                    if (originalHref.includes('?mode=')) {
+                        gameName = originalHref.split('?')[0].split('/').pop().split('.html')[0];
+                    }
                     
                     if (this.gameLinks[this.currentMode][gameName]) {
                         card.setAttribute('href', this.gameLinks[this.currentMode][gameName]);
+                        
+                        // Remove any existing click handlers to avoid duplicates
+                        const newCard = card.cloneNode(true);
+                        card.parentNode.replaceChild(newCard, card);
                     }
                 });
 
                 // Add click handlers for multiplayer auth check
                 if (this.currentMode === 'multiplayer') {
-                    gameCards.forEach(card => {
+                    const updatedGameCards = document.querySelectorAll('a[href*="?mode=multiplayer"]');
+                    updatedGameCards.forEach(card => {
                         card.addEventListener('click', this.handleMultiplayerClick.bind(this));
                     });
                 }
@@ -295,8 +358,11 @@
                 if (this.currentMode === 'multiplayer' && !isAuthenticated()) {
                     e.preventDefault();
                     const targetGame = e.currentTarget.getAttribute('href');
+                    console.log(`🔐 Redirecting to auth for: ${targetGame}`);
                     window.location.href = `auth.html?return=${encodeURIComponent(targetGame)}`;
+                    return false;
                 }
+                console.log(`🎮 Navigating to multiplayer game: ${e.currentTarget.getAttribute('href')}`);
             }
 
             loadBestScores() {
