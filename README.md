@@ -85,7 +85,7 @@ Match pairs in a 4x4 grid using your memory skills!
 
 3. **Get your credentials** from Project Settings → API:
    - Project URL: `https://your-project-id.supabase.co`
-   - Anon public key: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
+   - Anon public key: `given in api section...`
 
 #### Step 2: Environment Configuration
 
