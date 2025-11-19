@@ -33,6 +33,53 @@ Match pairs in a 4x4 grid using your memory skills!
 - **Scoring**: Completion time and move count
 - **Features**: 3D card flip animations, preview mode
 
+## 🌐 Multiplayer Features
+
+### Real-Time Competition
+- **Live Player List**: See who's online in each game room
+- **Real-Time Score Broadcasting**: Watch opponents' scores as they play
+- **Progress Updates**: Track competitors' progress during games
+- **Winner Notifications**: Celebrate victories with popup announcements
+
+### Game-Specific Multiplayer Rules
+
+#### ⚡ Reaction Test Multiplayer
+- Compete for the fastest reaction time
+- Real-time score sharing when games complete
+- Live leaderboard shows recent player times
+- Best reaction times highlighted
+
+#### 👆 Click Speed Test Multiplayer  
+- 5-second CPS competition
+- Scores broadcast automatically after each round
+- Live CPS leaderboard with highest scores highlighted
+- Real-time click count comparisons
+
+#### 🎯 Aim Trainer Multiplayer
+- 10-second accuracy competition
+- Progress updates every 2 seconds during gameplay
+- Final scores include accuracy, hits, and total points
+- Live progress shows hit/miss tracking
+- Real-time leaderboard for match scores
+
+#### 🧠 Memory Flip Multiplayer  
+- Race to match all 8 pairs fastest
+- Progress updates on every 3rd move
+- Winner popup when first player completes
+- Live progress: "Player matched X pairs" notifications
+- Time and move count competitions
+
+### Technical Multiplayer Features
+- **Room-Based Channels**: Separate rooms per game type
+  - `mini-arcade:reaction` - Reaction Test room
+  - `mini-arcade:clickspeed` - Click Speed room  
+  - `mini-arcade:aimtrainer` - Aim Trainer room
+  - `mini-arcade:memory` - Memory Flip room
+- **Player Presence**: Join/leave notifications with online indicators
+- **Connection Status**: Visual connection indicators (Connected/Reconnecting/Offline)
+- **Heartbeat System**: Automatic reconnection with exponential backoff
+- **Anti-Cheat**: Timestamp validation prevents old/spoofed messages
+
 ## ✨ Features
 
 - 🎨 **Beautiful UI**: Modern gradient backgrounds and smooth animations
@@ -47,6 +94,23 @@ Match pairs in a 4x4 grid using your memory skills!
 - 📊 **Advanced Leaderboards**: Track best scores and recent performance
 
 ## 🚀 Quick Start
+
+### Singleplayer Mode
+1. Open any game directly from the home page
+2. Click "Start" to begin playing
+3. Scores are saved locally and to the database
+
+### Multiplayer Mode  
+1. **Create Account**: Click "Sign Up" on the auth page
+2. **Choose Multiplayer**: Select "Multiplayer" from the home page game options
+3. **Join Room**: You'll be automatically connected to the game's multiplayer room
+4. **Compete**: Play in real-time with other online players!
+
+**URL Format for Multiplayer**: 
+- `reaction.html?mode=multiplayer` - Multiplayer Reaction Test
+- `clickspeed.html?mode=multiplayer` - Multiplayer Click Speed  
+- `aimtrainer.html?mode=multiplayer` - Multiplayer Aim Trainer
+- `memory.html?mode=multiplayer` - Multiplayer Memory Flip
 
 ### Local Development (Demo Mode)
 

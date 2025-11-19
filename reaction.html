@@ -46,13 +46,26 @@
 
             <!-- Multiplayer Player List -->
             <div id="multiplayerInfo" class="hidden mb-6">
-                <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4 max-w-md mx-auto">
-                    <div class="text-sm text-gray-300 mb-2 flex items-center justify-center space-x-2">
-                        <span>🌐 Online Players</span>
-                        <div id="connectionStatus" class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
+                    <!-- Online Players -->
+                    <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4">
+                        <div class="text-sm text-gray-300 mb-2 flex items-center justify-center space-x-2">
+                            <span>🌐 Online Players</span>
+                            <div id="connectionStatus" class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        </div>
+                        <div id="playerList" class="space-y-1 max-h-32 overflow-y-auto">
+                            <div class="text-gray-400 text-sm">Loading players...</div>
+                        </div>
                     </div>
-                    <div id="playerList" class="space-y-1 max-h-32 overflow-y-auto">
-                        <div class="text-gray-400 text-sm">Loading players...</div>
+                    
+                    <!-- Live Score Updates -->
+                    <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4">
+                        <div class="text-sm text-gray-300 mb-2 flex items-center justify-center space-x-2">
+                            <span>🏆 Live Scores</span>
+                        </div>
+                        <div id="liveScores" class="space-y-1 max-h-32 overflow-y-auto">
+                            <div class="text-gray-400 text-sm">No scores yet</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -134,6 +147,7 @@
     <script src="supabase.js"></script>
     <script src="scores.js"></script>
     <script src="pinger.js"></script>
+    <script src="multiplayer-core.js"></script>
     <script>
         class ReactionGame {
             constructor() {
@@ -196,34 +210,34 @@
                 }
             }
 
-            initMultiplayer() {
+            async initMultiplayer() {
                 try {
-                    this.multiplayer = initMultiplayer();
+                    this.multiplayer = new MultiplayerCore('reaction');
                     
-                    // Listen for various multiplayer events
-                    this.multiplayer.onMessage('score_update', (data) => {
-                        if (data.game === 'reaction') {
-                            this.handleMultiplayerScore(data);
-                        }
+                    // Set up event handlers
+                    this.multiplayer.on('score_update', (data) => {
+                        this.handleMultiplayerScore(data);
                     });
 
-                    this.multiplayer.onMessage('player_join', (data) => {
-                        this.showPlayerNotification(`${data.user} joined the game!`, 'join');
+                    this.multiplayer.on('player_join', (data) => {
+                        // Handled by core engine
                     });
 
-                    this.multiplayer.onMessage('player_leave', (data) => {
-                        this.showPlayerNotification(`${data.user} left the game`, 'leave');
+                    this.multiplayer.on('player_leave', (data) => {
+                        // Handled by core engine
                     });
                     
-                    // Update connection status
-                    this.updateConnectionStatus(true);
+                    // Connect to multiplayer
+                    const connected = await this.multiplayer.connect();
                     
-                    console.log('🌐 Multiplayer initialized for Reaction Test');
-                    
-                    // Set up periodic connection check
-                    setInterval(() => {
-                        this.updateConnectionStatus(this.multiplayer.isMultiplayerConnected());
-                    }, 5000);
+                    if (connected) {
+                        console.log('🌐 Multiplayer connected for Reaction Test');
+                        
+                        // Set up periodic connection check
+                        setInterval(() => {
+                            this.updateConnectionStatus(this.multiplayer.isMultiplayerConnected());
+                        }, 5000);
+                    }
                     
                 } catch (error) {
                     console.error('Failed to initialize multiplayer:', error);
@@ -480,7 +494,7 @@
                 // Broadcast score in multiplayer mode
                 if (this.isMultiplayer && this.multiplayer) {
                     console.log(`MINI-ARCADE: Broadcasting reaction score: ${time}ms`);
-                    this.multiplayer.broadcastScore('reaction', time, {
+                    this.multiplayer.broadcastScore(time, {
                         isNewRecord: isNewRecord,
                         totalGames: recentScores.length,
                         accuracy: 100 // Reaction game is always 100% if completed

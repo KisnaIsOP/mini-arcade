@@ -9,7 +9,16 @@ REM Add all files
 git add .
 
 REM Create initial commit
-git commit -m "Initial commit: Mini Arcade with 4 games"
+git commit -m "Add full multiplayer support to all 4 Mini Arcade games
+
+- Implemented shared multiplayer engine (multiplayer-core.js)
+- Added real-time competition for Reaction Test, Click Speed, Aim Trainer, Memory Flip
+- Room-based channels with player presence tracking
+- Live score broadcasting and progress updates
+- Comprehensive UI with player lists and live leaderboards
+- Database integration with Supabase
+- Authentication system for multiplayer mode
+- Anti-cheat and connection management features"
 
 echo.
 echo Git repository initialized successfully!

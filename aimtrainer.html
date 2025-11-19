@@ -47,15 +47,49 @@
                     <span>←</span>
                     <span>Home</span>
                 </a>
-                <div class="text-right">
-                    <div class="text-sm text-gray-300">Best Score</div>
-                    <div class="text-2xl font-bold text-purple-400" id="bestScore">---</div>
+                <div class="flex items-center space-x-4">
+                    <!-- Mode Indicator -->
+                    <div id="modeIndicator" class="text-center">
+                        <div class="text-sm text-gray-300">Mode</div>
+                        <div class="text-lg font-bold text-purple-400" id="gameMode">Singleplayer</div>
+                    </div>
+                    <!-- Best Score -->
+                    <div class="text-right">
+                        <div class="text-sm text-gray-300">Best Score</div>
+                        <div class="text-2xl font-bold text-purple-400" id="bestScore">---</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Multiplayer Player List -->
+            <div id="multiplayerInfo" class="hidden mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
+                    <!-- Online Players -->
+                    <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4">
+                        <div class="text-sm text-gray-300 mb-2 flex items-center justify-center space-x-2">
+                            <span>🌐 Online Players</span>
+                            <div id="connectionStatus" class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        </div>
+                        <div id="playerList" class="space-y-1 max-h-32 overflow-y-auto">
+                            <div class="text-gray-400 text-sm">Loading players...</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Live Progress & Scores -->
+                    <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4">
+                        <div class="text-sm text-gray-300 mb-2 flex items-center justify-center space-x-2">
+                            <span>🏆 Live Progress</span>
+                        </div>
+                        <div id="liveScores" class="space-y-1 max-h-32 overflow-y-auto">
+                            <div class="text-gray-400 text-sm">No activity yet</div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <h1 class="text-4xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 mb-4">
                 🎯 Aim Trainer
             </h1>
-            <p class="text-lg text-gray-300">Hit as many targets as possible in 10 seconds!</p>
+            <p class="text-lg text-gray-300" id="gameDescription">Hit as many targets as possible in 10 seconds!</p>
         </header>
 
         <!-- Game Stats -->
@@ -157,7 +191,12 @@
         </div>
     </div>
 
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="auth.js"></script>
+    <script src="supabase.js"></script>
+    <script src="scores.js"></script>
     <script src="pinger.js"></script>
+    <script src="multiplayer-core.js"></script>
     <script>
         class AimTrainer {
             constructor() {
@@ -188,9 +227,108 @@
                 this.gameTimer = null;
                 this.spawnTimer = null;
                 this.targets = [];
+                this.isMultiplayer = false;
+                this.multiplayer = null;
+                this.lastProgressBroadcast = 0;
                 
+                this.initMode();
                 this.loadLeaderboard();
                 this.bindEvents();
+            }
+
+            initMode() {
+                // Check if in multiplayer mode
+                const urlParams = new URLSearchParams(window.location.search);
+                this.isMultiplayer = urlParams.get('mode') === 'multiplayer';
+                
+                const gameModeEl = document.getElementById('gameMode');
+                const multiplayerInfo = document.getElementById('multiplayerInfo');
+                const gameDescription = document.getElementById('gameDescription');
+                
+                if (this.isMultiplayer) {
+                    // Check authentication for multiplayer
+                    if (!isAuthenticated()) {
+                        console.log('🔐 Not authenticated, redirecting to auth page');
+                        window.location.href = 'auth.html?return=' + encodeURIComponent(window.location.href);
+                        return;
+                    }
+                    
+                    gameModeEl.textContent = 'Multiplayer';
+                    gameModeEl.className = 'text-lg font-bold text-green-400';
+                    multiplayerInfo.classList.remove('hidden');
+                    gameDescription.textContent = 'Compete with others! Hit targets for points in real-time!';
+                    
+                    console.log('🌐 Initializing multiplayer mode for Aim Trainer');
+                    
+                    // Initialize multiplayer
+                    this.initMultiplayer();
+                } else {
+                    gameModeEl.textContent = 'Singleplayer';
+                    gameModeEl.className = 'text-lg font-bold text-purple-400';
+                    gameDescription.textContent = 'Hit as many targets as possible in 10 seconds!';
+                    
+                    console.log('🎯 Running in singleplayer mode');
+                }
+            }
+
+            async initMultiplayer() {
+                try {
+                    this.multiplayer = new MultiplayerCore('aimtrainer');
+                    
+                    // Set up event handlers
+                    this.multiplayer.on('score_update', (data) => {
+                        this.handleMultiplayerScore(data);
+                    });
+
+                    this.multiplayer.on('progress_update', (data) => {
+                        this.handleMultiplayerProgress(data);
+                    });
+
+                    this.multiplayer.on('player_join', (data) => {
+                        // Handled by core engine
+                    });
+
+                    this.multiplayer.on('player_leave', (data) => {
+                        // Handled by core engine
+                    });
+                    
+                    // Connect to multiplayer
+                    const connected = await this.multiplayer.connect();
+                    
+                    if (connected) {
+                        console.log('🌐 Multiplayer connected for Aim Trainer');
+                        
+                        // Set up periodic connection check
+                        setInterval(() => {
+                            this.updateConnectionStatus(this.multiplayer.isMultiplayerConnected());
+                        }, 5000);
+                    }
+                    
+                } catch (error) {
+                    console.error('Failed to initialize multiplayer:', error);
+                    this.updateConnectionStatus(false);
+                }
+            }
+
+            updateConnectionStatus(connected) {
+                const statusEl = document.getElementById('connectionStatus');
+                if (statusEl) {
+                    if (connected) {
+                        statusEl.className = 'w-2 h-2 bg-green-500 rounded-full animate-pulse';
+                    } else {
+                        statusEl.className = 'w-2 h-2 bg-red-500 rounded-full';
+                    }
+                }
+            }
+
+            handleMultiplayerScore(data) {
+                console.log(`🏆 Final score from ${data.user}: ${data.score} points`);
+                // Score notifications are handled by the core engine
+            }
+
+            handleMultiplayerProgress(data) {
+                console.log(`📊 Progress from ${data.user}:`, data.progress);
+                // Progress notifications are handled by the core engine
             }
 
             bindEvents() {
@@ -376,6 +514,21 @@
                 
                 const accuracy = this.shots > 0 ? ((this.hits / this.shots) * 100).toFixed(1) : 100;
                 this.accuracyEl.textContent = accuracy + '%';
+                
+                // Broadcast progress in multiplayer mode (throttled to every 2 seconds)
+                if (this.isMultiplayer && this.multiplayer && this.gameState === 'playing') {
+                    const now = Date.now();
+                    if (now - this.lastProgressBroadcast > 2000) {
+                        this.lastProgressBroadcast = now;
+                        this.multiplayer.broadcastProgress({
+                            score: this.score,
+                            hits: this.hits,
+                            shots: this.shots,
+                            accuracy: parseFloat(accuracy),
+                            timeRemaining: this.timeRemaining
+                        });
+                    }
+                }
             }
 
             endGame() {
@@ -455,7 +608,11 @@
                 ).join('');
             }
 
-            saveScore(score) {
+            async saveScore(score) {
+                const currentUser = getCurrentUser();
+                const username = currentUser ? currentUser.username : 'Anonymous';
+                const accuracy = this.shots > 0 ? ((this.hits / this.shots) * 100).toFixed(1) : 100;
+                
                 // Get current scores
                 const currentBest = localStorage.getItem('aimBest');
                 const recentScores = JSON.parse(localStorage.getItem('aimRecent') || '[]');
@@ -485,8 +642,41 @@
                 }
                 localStorage.setItem('aimRecent', JSON.stringify(recentScores));
                 
+                // Save to database if available
+                try {
+                    if (window.saveScore) {
+                        const saveResult = await saveScore('aimtrainer', username, score, {
+                            isNewRecord: isNewRecord,
+                            hits: this.hits,
+                            shots: this.shots,
+                            accuracy: parseFloat(accuracy),
+                            timestamp: new Date().toISOString()
+                        });
+                        
+                        if (saveResult.database) {
+                            console.log('MINI-ARCADE: Aim trainer score saved to database successfully');
+                        } else if (saveResult.local) {
+                            console.log('MINI-ARCADE: Aim trainer score saved locally only');
+                        }
+                    }
+                } catch (error) {
+                    console.error('MINI-ARCADE: Failed to save aim trainer score to database:', error);
+                }
+                
                 // Update recent scores display
                 this.updateRecentScoresList(recentScores);
+                
+                // Broadcast final score in multiplayer mode
+                if (this.isMultiplayer && this.multiplayer) {
+                    console.log(`MINI-ARCADE: Broadcasting aim trainer final score: ${score} pts`);
+                    this.multiplayer.broadcastScore(score, {
+                        isNewRecord: isNewRecord,
+                        hits: this.hits,
+                        shots: this.shots,
+                        accuracy: parseFloat(accuracy),
+                        gameTime: 10
+                    });
+                }
                 
                 return isNewRecord;
             }
