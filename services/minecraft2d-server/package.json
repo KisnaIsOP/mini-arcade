@@ -1,0 +1,20 @@
+{
+  "name": "minecraft2d-server",
+  "version": "1.0.0",
+  "description": "Multiplayer server for 2D Minecraft shared world",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["minecraft", "multiplayer", "websocket", "game-server"],
+  "author": "Developer",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.6.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

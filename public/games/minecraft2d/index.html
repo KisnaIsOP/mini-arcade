@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>2D Minecraft - Multiplayer</title>
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+        <script type="text/javascript" src="https://static.codehs.com/gulp/53366a3967fea97b1970f5538992dce3675bdc16/chs-js-lib/chs.js"></script>
+        <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+        <link rel="stylesheet" href="main.css">
+    </head>
+
+    <body>
+        <center>
+        <h1>2D Minecraft - Multiplayer</h1>
+        <div id="connection-status" style="padding: 10px; margin: 10px; background: #4CAF50; color: white; border-radius: 5px; display: inline-block;">
+            ⚪ Connecting...
+        </div>
+        <br>
+        <canvas style="border-style: solid" width="1024" height="512" class="codehs-editor-canvas"></canvas>
+        </center>
+
+        <!-- David Bau's Seeded RNG -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/seedrandom/3.0.5/seedrandom.min.js"></script>
+
+        <!-- Main Project Source Files -->
+        <script src="ImageHandler.js"></script>
+        <script src="AudioEngine.js"></script>
+        <script src="Input.js"></script>
+        <script src="Player.js"></script>
+        <script src="Camera.js"></script>
+        <script src="Block.js"></script>
+        <script src="World.js"></script>
+        <script src="Game.js"></script>
+        <script src="Menu.js"></script>
+        <script src="Splash.js"></script>
+        <script src="Utility.js"></script>
+        <script src="Tick.js"></script>
+        <script src="Sky.js"></script>
+        <script src="Multiplayer.js"></script>
+        <script src="CHS-Minecraft.js"></script>    
+    </body>
+</html>
