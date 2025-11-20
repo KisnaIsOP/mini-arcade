@@ -265,6 +265,20 @@
                     Play Now
                 </a>
             </div>
+
+            <!-- LittleJS Quest Game -->
+            <div class="game-card bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-sm border border-purple-300/30 rounded-3xl p-6 text-center hover:border-purple-300/60">
+                <div class="text-6xl mb-4 animate-float" style="animation-delay: 4s;">🎮</div>
+                <h3 class="text-2xl font-bold text-white mb-3">LittleJS Quest</h3>
+                <p class="text-gray-300 mb-6 text-sm">Classic platformer adventure! Jump, collect coins, and defeat enemies!</p>
+                <div class="mb-4">
+                    <div class="text-xs text-gray-400 mb-1">Best Score</div>
+                    <div class="text-lg font-bold text-purple-400" id="littlejsBest">—</div>
+                </div>
+                <a href="games/littlejs-quest/" class="inline-block w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500" aria-label="Play LittleJS Quest game">
+                    Play Now
+                </a>
+            </div>
         </div>
 
         <!-- Footer -->
@@ -296,7 +310,8 @@
                         flappy: 'games/flappy/',
                         snake: 'games/snake/',
                         slither: 'games/slither/',
-                        xenowar: 'games/xenowar/'
+                        xenowar: 'games/xenowar/',
+                        littlejs: 'games/littlejs-quest/'
                     },
                     multiplayer: {
                         reaction: 'reaction.html?mode=multiplayer',
@@ -306,7 +321,8 @@
                         flappy: 'games/flappy/?mode=multiplayer',
                         snake: 'games/snake/?mode=multiplayer',
                         slither: 'games/slither/?mode=multiplayer',
-                        xenowar: 'games/xenowar/?mode=multiplayer'
+                        xenowar: 'games/xenowar/?mode=multiplayer',
+                        littlejs: 'games/littlejs-quest/?mode=multiplayer'
                     }
                 };
 
@@ -568,6 +584,9 @@
                     
                     // Load Xenowar best score from local storage
                     const xenowarBest = localStorage.getItem('xenowarBest');
+                    
+                    // Load LittleJS best score from local storage
+                    const littlejsBest = localStorage.getItem('littlejsBest');
 
                     clearTimeout(timeout);
                     document.getElementById('reactionBest').textContent = reactionBest ? `${reactionBest}ms` : '—';
@@ -578,6 +597,7 @@
                     document.getElementById('snakeBest').textContent = snakeBest ? `${snakeBest} points` : '—';
                     document.getElementById('slitherBest').textContent = slitherBest ? `${slitherBest}` : '—';
                     document.getElementById('xenowarBest').textContent = xenowarBest ? `${xenowarBest} points` : '—';
+                    document.getElementById('littlejsBest').textContent = littlejsBest ? `${littlejsBest} points` : '—';
                 } catch (error) {
                     console.error('Error loading scores:', error);
                     clearTimeout(timeout);
@@ -594,6 +614,7 @@
                 document.getElementById('snakeBest').textContent = '—';
                 document.getElementById('slitherBest').textContent = '—';
                 document.getElementById('xenowarBest').textContent = '—';
+                document.getElementById('littlejsBest').textContent = '—';
             }
 
             initSparkles() {

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>LittleJS Quest - Mini Arcade</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        canvas {
+            max-width: 100%;
+            max-height: 100vh;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        #controls-info {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            text-align: center;
+            z-index: 999;
+        }
+        .player1-color { color: #66b3ff; font-weight: bold; }
+        .player2-color { color: #ff66b3; font-weight: bold; }
+        #backButton {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            border: 2px solid #fff;
+            border-radius: 5px;
+            text-decoration: none;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            z-index: 1000;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        #backButton:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <a href="../../index.html" id="backButton">← Back to Arcade</a>
+    <div id="controls-info">
+        <span class="player1-color">P1: WASD + Space</span> | 
+        <span class="player2-color">P2: Arrow Keys</span> | 
+        <span>R: Restart</span>
+    </div>
+    <script src="game.js" type="module"></script>
+</body>
+</html>
