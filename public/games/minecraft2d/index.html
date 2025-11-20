@@ -14,9 +14,28 @@
         <center>
         <h1>2D Minecraft - Multiplayer</h1>
         <div id="connection-status" style="padding: 10px; margin: 10px; background: #4CAF50; color: white; border-radius: 5px; display: inline-block;">
-            ⚪ Connecting...
+            ⚪ Loading game...
         </div>
         <br>
+        <div id="instructions" style="max-width: 800px; margin: 20px auto; padding: 15px; background: rgba(0,0,0,0.7); color: white; border-radius: 10px; text-align: left; display: none;">
+            <h2>🎮 How to Play</h2>
+            <p><strong>After the game loads, you'll see menus:</strong></p>
+            <ol>
+                <li>Click <strong>"Gotcha!"</strong> on the disclaimer screen</li>
+                <li>Click <strong>"Play Game"</strong> on the main menu</li>
+                <li>The game will start!</li>
+            </ol>
+            <h3>Controls:</h3>
+            <ul>
+                <li><strong>Left Click</strong>: Place block (when holding a block)</li>
+                <li><strong>Ctrl</strong>: Toggle between place/break mode</li>
+                <li><strong>A/D</strong>: Move left/right</li>
+                <li><strong>Space</strong>: Jump (disabled)</li>
+                <li><strong>1-2</strong>: Select block type (Grass, Dirt)</li>
+                <li><strong>Shift</strong>: Crouch</li>
+            </ul>
+            <p><em>🌐 Blocks placed will sync with other players in real-time!</em></p>
+        </div>
         <canvas style="border-style: solid" width="1024" height="512" class="codehs-editor-canvas"></canvas>
         </center>
 
