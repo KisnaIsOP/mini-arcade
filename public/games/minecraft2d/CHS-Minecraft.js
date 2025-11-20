@@ -811,4 +811,16 @@ window.onload = function() {
         start();
     }
     
+    // Debug: Auto-start game after a delay if CodeHS is ready
+    setTimeout(function() {
+        console.log('CHS-Minecraft: Checking if CodeHS library is loaded...');
+        if (typeof getWidth !== 'undefined') {
+            console.log('CHS-Minecraft: CodeHS library loaded, canvas ready');
+        } else {
+            console.error('CHS-Minecraft: CodeHS library NOT loaded! Game will not work.');
+            document.getElementById('connection-status').textContent = '❌ CodeHS library failed to load';
+            document.getElementById('connection-status').style.background = '#F44336';
+        }
+    }, 2000);
+    
 };
