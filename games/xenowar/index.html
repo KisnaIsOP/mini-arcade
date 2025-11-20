@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xenowar - 2D Space Shooter</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Main Menu -->
+        <div id="menu" class="menu">
+            <div class="menu-content">
+                <h1>XENOWAR</h1>
+                <p class="tagline">Defend Earth from the Alien Invasion</p>
+                <button id="start-btn" class="menu-button">START GAME</button>
+                <button id="controls-btn" class="menu-button">CONTROLS</button>
+                <button id="sound-toggle-btn" class="menu-button sound-btn">🔊 SOUND ON</button>
+                <a href="../../index.html" class="back-btn">← Back to Arcade</a>
+            </div>
+        </div>
+
+        <!-- Controls Screen -->
+        <div id="controls-screen" class="menu hidden">
+            <div class="menu-content">
+                <h2>CONTROLS</h2>
+                <div class="controls-info">
+                    <p><strong>🎮 Movement:</strong> WASD or Arrow Keys</p>
+                    <p><strong>🔫 Shoot:</strong> SPACE or Left Click</p>
+                    <p><strong>⏸️ Pause:</strong> ESC or P</p>
+                    <p><strong>📱 Mobile:</strong> Touch controls on screen</p>
+                </div>
+                <button id="back-to-menu-btn" class="menu-button">BACK</button>
+            </div>
+        </div>
+
+        <!-- Game Canvas -->
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- HUD -->
+        <div id="hud" class="hud hidden">
+            <div class="hud-top">
+                <div class="stat">
+                    <span class="label">SCORE</span>
+                    <span id="score" class="value">0</span>
+                </div>
+                <div class="stat">
+                    <span class="label">WAVE</span>
+                    <span id="wave" class="value">1</span>
+                </div>
+                <div class="stat">
+                    <span class="label">HEALTH</span>
+                    <div class="health-bar">
+                        <div id="health" class="health-fill"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pause Screen -->
+        <div id="pause-screen" class="overlay hidden">
+            <div class="overlay-content">
+                <h2>PAUSED</h2>
+                <button id="resume-btn" class="menu-button">RESUME</button>
+                <button id="quit-btn" class="menu-button">QUIT TO MENU</button>
+            </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="gameover-screen" class="overlay hidden">
+            <div class="overlay-content">
+                <h2>GAME OVER</h2>
+                <p class="final-stats">
+                    <span class="stat-line">Final Score: <span id="final-score">0</span></span>
+                    <span class="stat-line">Waves Survived: <span id="final-wave">0</span></span>
+                </p>
+                <button id="restart-btn" class="menu-button">PLAY AGAIN</button>
+                <button id="menu-btn" class="menu-button">MAIN MENU</button>
+            </div>
+        </div>
+
+        <!-- Mobile Touch Controls -->
+        <div id="mobile-controls" class="mobile-controls hidden">
+            <div class="joystick-area" id="joystick">
+                <div class="joystick-outer">
+                    <div class="joystick-inner"></div>
+                </div>
+            </div>
+            <button id="shoot-btn" class="shoot-button">🔫</button>
+        </div>
+    </div>
+
+    <script src="js/game.js" type="module"></script>
+</body>
+</html>
