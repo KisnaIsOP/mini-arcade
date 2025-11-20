@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slither.io Clone - Mini Arcade</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+    <script>
+        // Set the Slither server URL - change this for production
+        window.__SLITHER_SERVER_URL__ = 'http://localhost:3001';
+    </script>
+</head>
+<body>
+    <div id="game-container">
+        <div id="menu" class="menu">
+            <div class="menu-content">
+                <h1>SLITHER.IO</h1>
+                <input type="text" id="nickname" placeholder="Enter your nickname" maxlength="15">
+                <button id="play-btn" class="play-button">PLAY</button>
+                <div class="instructions">
+                    <p>🖱️ Move with mouse</p>
+                    <p>⚡ Speed boost with left click or space</p>
+                    <p>🎯 Eat dots to grow</p>
+                    <p>💀 Don't hit other snakes!</p>
+                </div>
+                <a href="../../index.html" class="back-btn">← Back to Arcade</a>
+            </div>
+        </div>
+        
+        <canvas id="canvas"></canvas>
+        
+        <div id="hud" class="hud hidden">
+            <div class="score-container">
+                <div class="score">Length: <span id="score">10</span></div>
+                <div class="leaderboard">
+                    <h3>Leaderboard</h3>
+                    <ol id="leaderboard-list"></ol>
+                </div>
+            </div>
+            <div class="minimap" id="minimap"></div>
+        </div>
+        
+        <div id="death-screen" class="death-screen hidden">
+            <div class="death-content">
+                <h2>Game Over!</h2>
+                <p class="final-score">Your Length: <span id="final-score">0</span></p>
+                <button id="respawn-btn" class="play-button">Play Again</button>
+                <a href="../../index.html" class="back-btn">← Back to Arcade</a>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/game.js" type="module"></script>
+</body>
+</html>

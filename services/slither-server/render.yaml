@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: slither-server
+    env: node
+    buildCommand: cd services/slither-server && npm install
+    startCommand: cd services/slither-server && npm start
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: WEBSITE_ORIGIN
+        value: https://your-website.onrender.com
