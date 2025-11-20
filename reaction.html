@@ -26,7 +26,7 @@
         <!-- Header -->
         <header class="text-center mb-8">
             <div class="flex items-center justify-between mb-6">
-                <a href="index.html" class="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-6 py-3 rounded-xl hover:bg-white/20 transition-all duration-300 flex items-center space-x-2">
+                <a href="index.html" class="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-6 py-3 rounded-xl hover:bg-white/20 transition-all duration-300 flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-white/50" aria-label="Go back to home page">
                     <span>←</span>
                     <span>Home</span>
                 </a>
@@ -87,7 +87,7 @@
 
             <!-- Reaction Button -->
             <div class="mb-8">
-                <button id="reactionButton" class="reaction-button w-64 h-64 md:w-80 md:h-80 rounded-full bg-gradient-to-br from-red-500 to-red-600 text-white font-bold text-2xl border-4 border-red-400 hover:border-red-300 focus:outline-none focus:ring-4 focus:ring-red-300/50 disabled:opacity-50 disabled:cursor-not-allowed">
+                <button id="reactionButton" class="reaction-button w-64 h-64 md:w-80 md:h-80 rounded-full bg-gradient-to-br from-red-500 to-red-600 text-white font-bold text-2xl border-4 border-red-400 hover:border-red-300 focus:outline-none focus:ring-4 focus:ring-red-300/50 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Start reaction test">
                     START
                 </button>
             </div>
@@ -122,7 +122,7 @@
                     </div>
                 </div>
 
-                <button id="playAgainBtn" class="bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold py-3 px-8 rounded-xl hover:shadow-lg hover:shadow-yellow-500/30 transition-all duration-300 transform hover:scale-105">
+                <button id="playAgainBtn" class="bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold py-3 px-8 rounded-xl hover:shadow-lg hover:shadow-yellow-500/30 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-500" aria-label="Play again">
                     Play Again
                 </button>
             </div>
@@ -186,9 +186,11 @@
                 
                 if (this.isMultiplayer) {
                     // Check authentication for multiplayer
-                    if (!isAuthenticated()) {
-                        console.log('🔐 Not authenticated, redirecting to auth page');
-                        window.location.href = 'auth.html?return=' + encodeURIComponent(window.location.href);
+                    const username = localStorage.getItem('miniArcade_username');
+                    if (!username) {
+                        console.log('🔐 Not authenticated, redirecting to home page');
+                        alert('Please login to play multiplayer games');
+                        window.location.href = 'index.html';
                         return;
                     }
                     
@@ -295,6 +297,19 @@
             bindEvents() {
                 this.button.addEventListener('click', () => this.handleClick());
                 this.playAgainBtn.addEventListener('click', () => this.resetGame());
+                
+                // Add keyboard support (Enter or Space)
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        if (this.gameState === 'ready' || this.gameState === 'waiting') {
+                            e.preventDefault();
+                            this.handleClick();
+                        } else if (this.gameState === 'finished' && !this.results.classList.contains('hidden')) {
+                            e.preventDefault();
+                            this.resetGame();
+                        }
+                    }
+                });
             }
 
             handleClick() {
@@ -505,10 +520,21 @@
             }
 
             async updateHybridLeaderboard() {
+                const timeout = setTimeout(() => {
+                    // Fallback after 2 seconds
+                    const recentScores = JSON.parse(localStorage.getItem('reactionRecent') || '[]');
+                    this.updateRecentScoresList(recentScores.map(s => ({
+                        score: s.score || s,
+                        username: 'You',
+                        source: 'local'
+                    })));
+                }, 2000);
+
                 try {
                     // Get hybrid leaderboard data
                     if (window.getHybridLeaderboard) {
                         const hybrid = await getHybridLeaderboard('reaction');
+                        clearTimeout(timeout);
                         
                         if (hybrid.success) {
                             // Update recent scores list with hybrid data
@@ -540,17 +566,24 @@
                             
                             this.updateRecentScoresList(displayScores);
                         }
+                    } else {
+                        clearTimeout(timeout);
+                        this.loadLocalScores();
                     }
                 } catch (error) {
+                    clearTimeout(timeout);
                     console.error('MINI-ARCADE: Failed to update hybrid leaderboard:', error);
-                    // Fallback to local scores only
-                    const recentScores = JSON.parse(localStorage.getItem('reactionRecent') || '[]');
-                    this.updateRecentScoresList(recentScores.map(s => ({
-                        score: s.score || s,
-                        username: 'You',
-                        source: 'local'
-                    })));
+                    this.loadLocalScores();
                 }
+            }
+
+            loadLocalScores() {
+                const recentScores = JSON.parse(localStorage.getItem('reactionRecent') || '[]');
+                this.updateRecentScoresList(recentScores.map(s => ({
+                    score: s.score || s,
+                    username: 'You',
+                    source: 'local'
+                })));
             }
 
             updateRecentScoresList(scores) {

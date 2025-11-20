@@ -48,6 +48,38 @@
     </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <!-- Login Modal -->
+    <div id="loginModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+        <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-8 max-w-md w-full mx-4 border border-gray-600 shadow-2xl">
+            <h2 class="text-3xl font-bold mb-2 text-center bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Login Required</h2>
+            <p class="text-gray-300 text-center mb-6">Enter a username to play multiplayer games</p>
+            <div class="space-y-4">
+                <div>
+                    <label for="usernameInput" class="block text-sm font-medium text-gray-300 mb-2">Username</label>
+                    <input 
+                        id="usernameInput" 
+                        type="text" 
+                        placeholder="Choose a username" 
+                        class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50"
+                        aria-label="Enter your username">
+                </div>
+                <div id="loginError" class="hidden text-red-400 text-sm text-center"></div>
+                <button 
+                    id="loginSubmitBtn" 
+                    class="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-lg hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    aria-label="Login to multiplayer">
+                    Continue
+                </button>
+                <button 
+                    id="loginCancelBtn" 
+                    class="w-full py-3 bg-gray-600 text-white font-semibold rounded-lg hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                    aria-label="Cancel login">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Stars Background -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none">
         <div class="absolute w-1 h-1 bg-white rounded-full animate-pulse" style="top: 20%; left: 10%;"></div>
@@ -62,7 +94,7 @@
         <header class="text-center mb-12">
             <!-- Banner Image -->
             <div class="mb-8 flex justify-center">
-                <img src="banner.jpg" alt="Mini Arcade Banner" class="banner-glow max-w-full h-auto rounded-2xl border-4 border-white/20" style="max-width: 400px;">
+                <img src="banner.jpg" alt="Mini Arcade Banner - Collection of fun browser games" class="banner-glow max-w-full h-auto rounded-2xl border-4 border-white/20" style="max-width: 400px;" loading="lazy">
             </div>
             <p class="text-xl md:text-2xl text-gray-300 font-light">
                 Challenge yourself with these exciting mini games!
@@ -84,10 +116,10 @@
                 <!-- Mode Selection -->
                 <div class="bg-black/20 backdrop-blur-sm border border-white/20 rounded-2xl p-2">
                     <div class="flex space-x-2">
-                        <button id="singleplayerMode" class="mode-btn px-6 py-3 rounded-xl font-semibold transition-all duration-300 bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg">
+                        <button id="singleplayerMode" class="mode-btn px-6 py-3 rounded-xl font-semibold transition-all duration-300 bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-purple-500" aria-label="Switch to singleplayer mode" aria-pressed="true">
                             🎯 Singleplayer
                         </button>
-                        <button id="multiplayerMode" class="mode-btn px-6 py-3 rounded-xl font-semibold transition-all duration-300 text-gray-400 hover:text-white">
+                        <button id="multiplayerMode" class="mode-btn px-6 py-3 rounded-xl font-semibold transition-all duration-300 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Switch to multiplayer mode" aria-pressed="false">
                             🌐 Multiplayer
                         </button>
                     </div>
@@ -129,11 +161,9 @@
                 <p class="text-gray-300 mb-6 text-sm">How fast are your reflexes? Click when the color changes!</p>
                 <div class="mb-4">
                     <div class="text-xs text-gray-400 mb-1">Best Time</div>
-                    <div class="text-lg font-bold text-red-400" id="reactionBest">
-                        <span class="loading-dots">Loading...</span>
-                    </div>
+                    <div class="text-lg font-bold text-red-400" id="reactionBest">—</div>
                 </div>
-                <a href="reaction.html" class="inline-block w-full bg-gradient-to-r from-red-500 to-orange-500 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg hover:shadow-red-500/30 transition-all duration-300 transform hover:scale-105">
+                <a href="reaction.html" class="inline-block w-full bg-gradient-to-r from-red-500 to-orange-500 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg hover:shadow-red-500/30 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500" aria-label="Play Reaction Test game">
                     Play Now
                 </a>
             </div>
@@ -145,11 +175,9 @@
                 <p class="text-gray-300 mb-6 text-sm">How many clicks in 5 seconds? Test your clicking speed!</p>
                 <div class="mb-4">
                     <div class="text-xs text-gray-400 mb-1">Best CPS</div>
-                    <div class="text-lg font-bold text-green-400" id="clickBest">
-                        <span class="loading-dots">Loading...</span>
-                    </div>
+                    <div class="text-lg font-bold text-green-400" id="clickBest">—</div>
                 </div>
-                <a href="clickspeed.html" class="inline-block w-full bg-gradient-to-r from-green-500 to-teal-500 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg hover:shadow-green-500/30 transition-all duration-300 transform hover:scale-105">
+                <a href="clickspeed.html" class="inline-block w-full bg-gradient-to-r from-green-500 to-teal-500 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg hover:shadow-green-500/30 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500" aria-label="Play Click Speed Test game">
                     Play Now
                 </a>
             </div>
@@ -161,11 +189,9 @@
                 <p class="text-gray-300 mb-6 text-sm">Hit as many targets as possible in 10 seconds!</p>
                 <div class="mb-4">
                     <div class="text-xs text-gray-400 mb-1">Best Score</div>
-                    <div class="text-lg font-bold text-blue-400" id="aimBest">
-                        <span class="loading-dots">Loading...</span>
-                    </div>
+                    <div class="text-lg font-bold text-blue-400" id="aimBest">—</div>
                 </div>
-                <a href="aimtrainer.html" class="inline-block w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-300 transform hover:scale-105">
+                <a href="aimtrainer.html" class="inline-block w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Play Aim Trainer game">
                     Play Now
                 </a>
             </div>
@@ -177,11 +203,9 @@
                 <p class="text-gray-300 mb-6 text-sm">Match all pairs in a 4x4 grid. Remember the positions!</p>
                 <div class="mb-4">
                     <div class="text-xs text-gray-400 mb-1">Best Time</div>
-                    <div class="text-lg font-bold text-pink-400" id="memoryBest">
-                        <span class="loading-dots">Loading...</span>
-                    </div>
+                    <div class="text-lg font-bold text-pink-400" id="memoryBest">—</div>
                 </div>
-                <a href="memory.html" class="inline-block w-full bg-gradient-to-r from-pink-500 to-violet-500 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg hover:shadow-pink-500/30 transition-all duration-300 transform hover:scale-105">
+                <a href="memory.html" class="inline-block w-full bg-gradient-to-r from-pink-500 to-violet-500 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg hover:shadow-pink-500/30 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-pink-500" aria-label="Play Memory Flip game">
                     Play Now
                 </a>
             </div>
@@ -193,11 +217,9 @@
                 <p class="text-gray-300 mb-6 text-sm">Navigate through pipes by tapping to flap. Classic arcade action!</p>
                 <div class="mb-4">
                     <div class="text-xs text-gray-400 mb-1">Best Score</div>
-                    <div class="text-lg font-bold text-yellow-400" id="flappyBest">
-                        <span class="loading-dots">Loading...</span>
-                    </div>
+                    <div class="text-lg font-bold text-yellow-400" id="flappyBest">—</div>
                 </div>
-                <a href="games/flappy/" class="inline-block w-full bg-gradient-to-r from-yellow-500 to-amber-500 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg hover:shadow-yellow-500/30 transition-all duration-300 transform hover:scale-105">
+                <a href="games/flappy/" class="inline-block w-full bg-gradient-to-r from-yellow-500 to-amber-500 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg hover:shadow-yellow-500/30 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-500" aria-label="Play Flappy Bird game">
                     Play Now
                 </a>
             </div>
@@ -209,11 +231,9 @@
                 <p class="text-gray-300 mb-6 text-sm">Eat food to grow your snake! Avoid walls and your own tail!</p>
                 <div class="mb-4">
                     <div class="text-xs text-gray-400 mb-1">Best Score</div>
-                    <div class="text-lg font-bold text-emerald-400" id="snakeBest">
-                        <span class="loading-dots">Loading...</span>
-                    </div>
+                    <div class="text-lg font-bold text-emerald-400" id="snakeBest">—</div>
                 </div>
-                <a href="games/snake/" class="inline-block w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg hover:shadow-emerald-500/30 transition-all duration-300 transform hover:scale-105">
+                <a href="games/snake/" class="inline-block w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg hover:shadow-emerald-500/30 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-emerald-500" aria-label="Play Snake game">
                     Play Now
                 </a>
             </div>
@@ -266,25 +286,95 @@
             }
 
             initAuth() {
-                const currentUser = getCurrentUser();
+                // Check for simple username-based auth
+                const username = localStorage.getItem('miniArcade_username');
                 const userStatus = document.getElementById('userStatus');
-                const username = document.getElementById('username');
+                const usernameSpan = document.getElementById('username');
                 const logoutBtn = document.getElementById('logoutBtn');
 
-                if (currentUser) {
+                if (username) {
                     userStatus.classList.remove('hidden');
-                    username.textContent = currentUser.username;
-                    console.log(`🎮 Welcome back, ${currentUser.username}!`);
+                    usernameSpan.textContent = username;
+                    console.log(`🎮 Welcome back, ${username}!`);
                 }
 
                 logoutBtn.addEventListener('click', () => {
-                    logout();
-                    // Disconnect from multiplayer if connected
-                    if (window.disconnectMultiplayer) {
-                        disconnectMultiplayer();
+                    if (confirm('Are you sure you want to logout?')) {
+                        localStorage.removeItem('miniArcade_username');
+                        // Disconnect from multiplayer if connected
+                        if (window.disconnectMultiplayer) {
+                            disconnectMultiplayer();
+                        }
+                        location.reload();
                     }
-                    location.reload();
                 });
+
+                // Setup login modal
+                this.setupLoginModal();
+            }
+
+            setupLoginModal() {
+                const modal = document.getElementById('loginModal');
+                const usernameInput = document.getElementById('usernameInput');
+                const submitBtn = document.getElementById('loginSubmitBtn');
+                const cancelBtn = document.getElementById('loginCancelBtn');
+                const errorDiv = document.getElementById('loginError');
+
+                // Handle login submit
+                const handleLogin = () => {
+                    const username = usernameInput.value.trim();
+                    
+                    if (!username) {
+                        errorDiv.textContent = 'Please enter a username';
+                        errorDiv.classList.remove('hidden');
+                        return;
+                    }
+
+                    if (username.length < 3) {
+                        errorDiv.textContent = 'Username must be at least 3 characters';
+                        errorDiv.classList.remove('hidden');
+                        return;
+                    }
+
+                    if (username.length > 20) {
+                        errorDiv.textContent = 'Username must be 20 characters or less';
+                        errorDiv.classList.remove('hidden');
+                        return;
+                    }
+
+                    // Save username and reload
+                    localStorage.setItem('miniArcade_username', username);
+                    modal.classList.add('hidden');
+                    location.reload();
+                };
+
+                submitBtn.addEventListener('click', handleLogin);
+                
+                // Allow Enter key to submit
+                usernameInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        handleLogin();
+                    }
+                });
+
+                // Handle cancel
+                cancelBtn.addEventListener('click', () => {
+                    modal.classList.add('hidden');
+                    usernameInput.value = '';
+                    errorDiv.classList.add('hidden');
+                });
+
+                // Clear error on input
+                usernameInput.addEventListener('input', () => {
+                    errorDiv.classList.add('hidden');
+                });
+            }
+
+            showLoginModal() {
+                const modal = document.getElementById('loginModal');
+                const usernameInput = document.getElementById('usernameInput');
+                modal.classList.remove('hidden');
+                usernameInput.focus();
             }
 
             initModeSelection() {
@@ -313,8 +403,10 @@
                 const multiplayerDesc = document.getElementById('multiplayerDesc');
 
                 if (mode === 'singleplayer') {
-                    singleplayerBtn.className = 'mode-btn px-6 py-3 rounded-xl font-semibold transition-all duration-300 bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg';
-                    multiplayerBtn.className = 'mode-btn px-6 py-3 rounded-xl font-semibold transition-all duration-300 text-gray-400 hover:text-white';
+                    singleplayerBtn.className = 'mode-btn px-6 py-3 rounded-xl font-semibold transition-all duration-300 bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-purple-500';
+                    multiplayerBtn.className = 'mode-btn px-6 py-3 rounded-xl font-semibold transition-all duration-300 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500';
+                    singleplayerBtn.setAttribute('aria-pressed', 'true');
+                    multiplayerBtn.setAttribute('aria-pressed', 'false');
                     singleplayerDesc.classList.remove('hidden');
                     multiplayerDesc.classList.add('hidden');
                     
@@ -323,13 +415,16 @@
                         disconnectMultiplayer();
                     }
                 } else {
-                    multiplayerBtn.className = 'mode-btn px-6 py-3 rounded-xl font-semibold transition-all duration-300 bg-gradient-to-r from-green-500 to-blue-500 text-white shadow-lg';
-                    singleplayerBtn.className = 'mode-btn px-6 py-3 rounded-xl font-semibold transition-all duration-300 text-gray-400 hover:text-white';
+                    multiplayerBtn.className = 'mode-btn px-6 py-3 rounded-xl font-semibold transition-all duration-300 bg-gradient-to-r from-green-500 to-blue-500 text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500';
+                    singleplayerBtn.className = 'mode-btn px-6 py-3 rounded-xl font-semibold transition-all duration-300 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-purple-500';
+                    multiplayerBtn.setAttribute('aria-pressed', 'true');
+                    singleplayerBtn.setAttribute('aria-pressed', 'false');
                     multiplayerDesc.classList.remove('hidden');
                     singleplayerDesc.classList.add('hidden');
                     
                     // Initialize multiplayer if authenticated
-                    if (isAuthenticated()) {
+                    const username = localStorage.getItem('miniArcade_username');
+                    if (username) {
                         this.initMultiplayerConnection();
                     }
                 }
@@ -406,18 +501,23 @@
             }
 
             handleMultiplayerClick(e) {
-                if (this.currentMode === 'multiplayer' && !isAuthenticated()) {
+                const username = localStorage.getItem('miniArcade_username');
+                if (this.currentMode === 'multiplayer' && !username) {
                     e.preventDefault();
-                    const targetGame = e.currentTarget.getAttribute('href');
-                    console.log(`🔐 Redirecting to auth for: ${targetGame}`);
-                    window.location.href = `auth.html?return=${encodeURIComponent(targetGame)}`;
+                    console.log(`🔐 Login required for multiplayer`);
+                    this.showLoginModal();
                     return false;
                 }
                 console.log(`🎮 Navigating to multiplayer game: ${e.currentTarget.getAttribute('href')}`);
             }
 
             loadBestScores() {
-                setTimeout(() => {
+                // Immediate display with timeout fallback
+                const timeout = setTimeout(() => {
+                    this.displayScoresAsFallback();
+                }, 2000);
+
+                try {
                     const reactionBest = localStorage.getItem('reactionBest');
                     const clickBest = localStorage.getItem('clickBest');
                     const aimBest = localStorage.getItem('aimBest');
@@ -431,13 +531,27 @@
                     const snakeScores = JSON.parse(localStorage.getItem('snake_scores') || '[]');
                     const snakeBest = snakeScores.length > 0 ? Math.max(...snakeScores.map(s => s.score)) : null;
 
-                    document.getElementById('reactionBest').textContent = reactionBest ? `${reactionBest}ms` : 'No record';
-                    document.getElementById('clickBest').textContent = clickBest ? `${clickBest} CPS` : 'No record';
-                    document.getElementById('aimBest').textContent = aimBest ? `${aimBest} points` : 'No record';
-                    document.getElementById('memoryBest').textContent = memoryBest ? `${memoryBest}s` : 'No record';
-                    document.getElementById('flappyBest').textContent = flappyBest ? `${flappyBest} points` : 'No record';
-                    document.getElementById('snakeBest').textContent = snakeBest ? `${snakeBest} points` : 'No record';
-                }, 500);
+                    clearTimeout(timeout);
+                    document.getElementById('reactionBest').textContent = reactionBest ? `${reactionBest}ms` : '—';
+                    document.getElementById('clickBest').textContent = clickBest ? `${clickBest} CPS` : '—';
+                    document.getElementById('aimBest').textContent = aimBest ? `${aimBest} points` : '—';
+                    document.getElementById('memoryBest').textContent = memoryBest ? `${memoryBest}s` : '—';
+                    document.getElementById('flappyBest').textContent = flappyBest ? `${flappyBest} points` : '—';
+                    document.getElementById('snakeBest').textContent = snakeBest ? `${snakeBest} points` : '—';
+                } catch (error) {
+                    console.error('Error loading scores:', error);
+                    clearTimeout(timeout);
+                    this.displayScoresAsFallback();
+                }
+            }
+
+            displayScoresAsFallback() {
+                document.getElementById('reactionBest').textContent = '—';
+                document.getElementById('clickBest').textContent = '—';
+                document.getElementById('aimBest').textContent = '—';
+                document.getElementById('memoryBest').textContent = '—';
+                document.getElementById('flappyBest').textContent = '—';
+                document.getElementById('snakeBest').textContent = '—';
             }
 
             initSparkles() {

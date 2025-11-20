@@ -271,9 +271,11 @@
                 
                 if (this.isMultiplayer) {
                     // Check authentication for multiplayer
-                    if (!isAuthenticated()) {
-                        console.log('🔐 Not authenticated, redirecting to auth page');
-                        window.location.href = 'auth.html?return=' + encodeURIComponent(window.location.href);
+                    const username = localStorage.getItem('miniArcade_username');
+                    if (!username) {
+                        console.log('🔐 Not authenticated, redirecting to home page');
+                        alert('Please login to play multiplayer games');
+                        window.location.href = 'index.html';
                         return;
                     }
                     

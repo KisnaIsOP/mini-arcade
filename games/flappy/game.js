@@ -75,6 +75,8 @@ const gnd = {
     this.x = this.x % (this.sprite.width / 2);
   },
 };
+gnd.sprite.loading = 'lazy';
+
 const bg = {
   sprite: new Image(),
   x: 0,
@@ -84,6 +86,7 @@ const bg = {
     sctx.drawImage(this.sprite, this.x, y);
   },
 };
+bg.sprite.loading = 'lazy';
 const pipe = {
   top: { sprite: new Image() },
   bot: { sprite: new Image() },

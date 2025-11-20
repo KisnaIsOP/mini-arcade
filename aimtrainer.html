@@ -247,9 +247,11 @@
                 
                 if (this.isMultiplayer) {
                     // Check authentication for multiplayer
-                    if (!isAuthenticated()) {
-                        console.log('🔐 Not authenticated, redirecting to auth page');
-                        window.location.href = 'auth.html?return=' + encodeURIComponent(window.location.href);
+                    const username = localStorage.getItem('miniArcade_username');
+                    if (!username) {
+                        console.log('🔐 Not authenticated, redirecting to home page');
+                        alert('Please login to play multiplayer games');
+                        window.location.href = 'index.html';
                         return;
                     }
                     
@@ -335,6 +337,17 @@
                 this.startBtn.addEventListener('click', () => this.startGame());
                 this.playAgainBtn.addEventListener('click', () => this.resetGame());
                 this.gameArea.addEventListener('click', (e) => this.handleAreaClick(e));
+                
+                // Add keyboard support
+                document.addEventListener('keydown', (e) => {
+                    if ((e.key === 'Enter' || e.key === ' ') && this.gameState === 'ready') {
+                        e.preventDefault();
+                        this.startGame();
+                    } else if ((e.key === 'Enter' || e.key === ' ') && this.gameState === 'finished') {
+                        e.preventDefault();
+                        this.resetGame();
+                    }
+                });
             }
 
             startGame() {
