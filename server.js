@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 
 const app = express();
+const fs = require('fs');
 const PORT = process.env.PORT || 3000;
 
 // Health check endpoint for keep-alive monitoring
@@ -28,11 +29,17 @@ app.get('/api/status', (req, res) => {
 });
 
 // Serve static files from the current directory
-app.use(express.static(__dirname));
+const publicPath = path.join(__dirname, 'public');
+app.use(express.static(publicPath));
 
-// Handle SPA routing - redirect all routes to index.html (must be last)
+// Handle SPA routing - redirect unknown routes to root index.html if present
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    const rootIndex = path.join(__dirname, 'index.html');
+    if (fs.existsSync(rootIndex)) {
+        res.sendFile(rootIndex);
+    } else {
+        res.sendFile(path.join(publicPath, 'index.html'));
+    }
 });
 
 app.listen(PORT, () => {

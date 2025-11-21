@@ -9,7 +9,7 @@ var MP_ReconnectDelays = [1000, 2000, 4000, 8000, 16000, 30000];
 var MP_ReconnectAttempt = 0;
 
 // Server URL from environment or default to localhost
-var MP_ServerURL = window.__MC2D_SERVER_URL__ || 'http://localhost:3000';
+var MP_ServerURL = window.__MC2D_SERVER_URL__ || 'http://localhost:3001';
 
 //
 // MP_UpdateStatus(message, color)
